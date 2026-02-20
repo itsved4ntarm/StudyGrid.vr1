@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyGrid – AS Level Scheduler</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#0a0a0a;
+  --s1:#111111;
+  --s2:#181818;
+  --s3:#202020;
+  --b1:#2a2a2a;
+  --b2:#333333;
+  --t1:#f2f2f2;
+  --t2:#888888;
+  --t3:#444444;
+  --white:#ffffff;
+  --math:#a78bfa;
+  --chem:#34d399;
+  --phys:#fb923c;
+  --biz:#f472b6;
+  --eng:#facc15;
+}
+
+body{background:var(--bg);color:var(--t1);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+
+/* ── HEADER ── */
+header{
+  height:56px;padding:0 1.5rem;
+  background:var(--s1);border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;gap:1rem;
+  position:sticky;top:0;z-index:100;
+}
+.logo{font-size:1.2rem;font-weight:800;letter-spacing:-0.04em;color:var(--white)}
+.logo span{color:var(--math)}
+.sep{width:1px;height:18px;background:var(--b2)}
+.hdr-sub{font-family:'Space Mono',monospace;font-size:0.55rem;color:var(--t3);letter-spacing:.12em;text-transform:uppercase}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:.9rem}
+.stat{font-family:'Space Mono',monospace;font-size:0.58rem;color:var(--t3);display:flex;gap:4px}
+.stat b{color:var(--white);font-weight:700}
+.btn-ai{
+  background:var(--white);border:none;color:#000;
+  font-family:'Space Mono',monospace;font-size:0.62rem;font-weight:700;
+  padding:6px 14px;border-radius:5px;cursor:pointer;transition:opacity .15s;
+}
+.btn-sgai{
+  background:linear-gradient(135deg,var(--math),#6d53f0);
+  border:none;color:#fff;
+  font-family:'Space Mono',monospace;font-size:0.62rem;font-weight:700;
+  padding:6px 14px;border-radius:5px;cursor:pointer;transition:opacity .15s;
+  white-space:nowrap;
+}
+.btn-sgai:hover{opacity:.85}
+.btn-countdown{
+  background:var(--s2);border:1px solid var(--b2);color:var(--t1);
+  font-family:'Space Mono',monospace;font-size:0.62rem;font-weight:700;
+  padding:6px 14px;border-radius:5px;cursor:pointer;transition:all .15s;
+}
+.btn-countdown:hover{border-color:var(--phys);color:var(--phys)}
+
+/* ── EXAM COUNTDOWN PAGE ── */
+.countdown-page{
+  position:fixed;inset:0;z-index:400;
+  background:var(--bg);display:flex;flex-direction:column;
+  transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.countdown-page.open{transform:translateX(0)}
+.cd-header{
+  height:56px;padding:0 1.5rem;
+  background:var(--s1);border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;gap:1rem;flex-shrink:0;
+}
+.cd-logo{font-size:1.2rem;font-weight:800;letter-spacing:-.04em;color:var(--white)}
+.cd-logo span{color:var(--phys)}
+.cd-title-lbl{font-family:'Space Mono',monospace;font-size:.55rem;color:var(--t3);letter-spacing:.12em;text-transform:uppercase}
+.cd-close{margin-left:auto;background:var(--s2);border:1px solid var(--b2);color:var(--t2);font-family:'Space Mono',monospace;font-size:.6rem;padding:5px 12px;border-radius:5px;cursor:pointer;transition:all .15s}
+.cd-close:hover{color:var(--white);border-color:var(--b2)}
+.cd-body{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:.85rem;max-width:860px;width:100%;margin:0 auto}
+.cd-body::-webkit-scrollbar{width:4px}
+.cd-body::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.cd-hero{background:var(--s1);border:1px solid var(--b2);border-radius:14px;padding:1.4rem 1.6rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;position:relative;overflow:hidden}
+.cd-hero::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(167,139,250,.07),transparent 60%);pointer-events:none}
+.cd-hero-label{font-family:'Space Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.14em;color:var(--t3);margin-bottom:.35rem}
+.cd-hero-name{font-size:1.15rem;font-weight:800;letter-spacing:-.02em;color:var(--white)}
+.cd-hero-paper{font-size:.68rem;color:var(--t2);margin-top:.25rem}
+.cd-hero-date{font-family:'Space Mono',monospace;font-size:.58rem;color:var(--t3);margin-top:.2rem}
+.cd-timer{display:flex;gap:.75rem;flex-shrink:0}
+.cd-unit{display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.cd-num{font-family:'Space Mono',monospace;font-size:1.75rem;font-weight:700;color:var(--white);line-height:1;background:var(--s2);border:1px solid var(--b2);padding:.35rem .6rem;border-radius:8px;min-width:54px;text-align:center}
+.cd-unit-lbl{font-family:'Space Mono',monospace;font-size:.45rem;text-transform:uppercase;letter-spacing:.1em;color:var(--t3)}
+.cd-section-lbl{font-family:'Space Mono',monospace;font-size:.52rem;text-transform:uppercase;letter-spacing:.14em;color:var(--t3);margin-top:.4rem}
+.cd-exam{background:var(--s1);border:1px solid var(--b1);border-radius:9px;padding:.8rem 1rem;display:flex;align-items:center;gap:.85rem;transition:border-color .15s}
+.cd-exam:hover{border-color:var(--b2)}
+.cd-exam.past{opacity:.3}
+.cd-exam.next-up{border-color:var(--math);background:rgba(167,139,250,.05)}
+.cd-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:2px}
+.cd-exam-info{flex:1}
+.cd-exam-name{font-size:.78rem;font-weight:700}
+.cd-exam-paper{font-size:.63rem;color:var(--t2);margin-top:2px}
+.cd-exam-when{font-family:'Space Mono',monospace;font-size:.57rem;color:var(--t3);margin-top:2px}
+.cd-days-box{text-align:right;flex-shrink:0}
+.cd-days-num{font-family:'Space Mono',monospace;font-size:.85rem;font-weight:700}
+.cd-days-lbl{font-family:'Space Mono',monospace;font-size:.45rem;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+
+/* ── STUDYGRID AI FULL PAGE ── */
+.sgai-page{
+  position:fixed;inset:0;z-index:500;
+  background:var(--bg);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.sgai-page.open{transform:translateY(0)}
+
+/* sidebar left nav */
+.sgai-wrap{display:flex;flex:1;overflow:hidden}
+
+.sgai-sidenav{
+  width:56px;background:var(--s1);border-right:1px solid var(--b1);
+  display:flex;flex-direction:column;align-items:center;
+  padding:.75rem 0;gap:.25rem;
+}
+.snav-logo{
+  width:32px;height:32px;border-radius:8px;
+  background:linear-gradient(135deg,var(--math),#6d53f0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:900;color:#fff;margin-bottom:.5rem;cursor:pointer;
+}
+.snav-logo:hover{opacity:.85}
+.snav-btn{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--t3);font-size:.9rem;
+  transition:all .15s;border:none;background:none;
+}
+.snav-btn:hover{background:var(--s2);color:var(--t1)}
+.snav-btn.active{background:var(--s2);color:var(--t1)}
+.snav-divider{width:28px;height:1px;background:var(--b1);margin:.3rem 0}
+.snav-bottom{margin-top:auto}
+.snav-avatar{
+  width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,var(--chem),var(--phys));
+  display:flex;align-items:center;justify-content:center;
+  font-size:.6rem;font-weight:700;color:#fff;cursor:pointer;
+}
+
+/* main chat area */
+.sgai-main{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  overflow:hidden;position:relative;
+}
+
+/* top bar */
+.sgai-topbar{
+  width:100%;padding:.7rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--b1);
+}
+.sgai-topbar-title{
+  font-family:'Space Mono',monospace;font-size:.58rem;
+  color:var(--t3);text-transform:uppercase;letter-spacing:.1em;
+}
+.sgai-close{
+  background:none;border:none;color:var(--t3);cursor:pointer;
+  font-size:1.1rem;line-height:1;transition:color .15s;padding:4px 8px;
+  border-radius:4px;
+}
+.sgai-close:hover{color:var(--t1);background:var(--s2)}
+
+/* messages area */
+.sgai-msgs{
+  flex:1;overflow-y:auto;width:100%;
+  display:flex;flex-direction:column;align-items:center;
+  padding:2rem 1rem;gap:1.25rem;
+}
+.sgai-msgs::-webkit-scrollbar{width:3px}
+.sgai-msgs::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* empty state */
+.sgai-empty{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;flex:1;gap:1rem;
+  text-align:center;padding:2rem;
+}
+.sgai-empty-logo{
+  width:56px;height:56px;border-radius:16px;
+  background:linear-gradient(135deg,var(--math),#6d53f0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;font-weight:900;color:#fff;
+  box-shadow:0 0 32px rgba(167,139,250,.3);
+}
+.sgai-empty h2{font-size:1.4rem;font-weight:800;letter-spacing:-.03em}
+.sgai-empty p{font-size:.78rem;color:var(--t2);max-width:320px;line-height:1.6}
+
+.sgai-chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:.5rem;max-width:580px}
+.sgai-chip{
+  font-family:'Space Mono',monospace;font-size:.58rem;
+  padding:6px 12px;background:var(--s2);border:1px solid var(--b2);
+  border-radius:20px;cursor:pointer;color:var(--t2);transition:all .15s;
+}
+.sgai-chip:hover{color:var(--white);border-color:var(--b2);background:var(--s3)}
+
+/* message bubbles */
+.sgai-msg{width:100%;max-width:680px;display:flex;gap:.75rem}
+.sgai-msg.user{justify-content:flex-end}
+.sgai-msg.user .sgai-bubble{
+  background:var(--white);color:#111;border-radius:16px 16px 4px 16px;
+  font-weight:600;font-size:.82rem;
+}
+.sgai-msg.bot .sgai-bubble{
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:4px 16px 16px 16px;font-size:.82rem;line-height:1.7;
+}
+.sgai-msg.bot .sgai-bubble strong{color:var(--math)}
+.sgai-msg.thinking .sgai-bubble{
+  background:var(--s2);border:1px solid var(--b1);
+  border-radius:4px 16px 16px 16px;
+  color:var(--t3);font-family:'Space Mono',monospace;font-size:.62rem;
+}
+.sgai-bubble{padding:.75rem 1rem;max-width:100%}
+.sgai-bot-icon{
+  width:28px;height:28px;border-radius:8px;flex-shrink:0;margin-top:2px;
+  background:linear-gradient(135deg,var(--math),#6d53f0);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:900;color:#fff;
+}
+
+/* file/image preview strip */
+.sgai-attach-strip{
+  display:flex;gap:.5rem;flex-wrap:wrap;
+  max-width:680px;width:100%;padding:0 0 .5rem;
+}
+.sgai-attach-preview{
+  position:relative;border-radius:8px;overflow:hidden;
+  border:1px solid var(--b2);background:var(--s2);
+}
+.sgai-attach-preview img{width:60px;height:60px;object-fit:cover;display:block}
+.sgai-attach-preview .file-chip{
+  display:flex;align-items:center;gap:.35rem;padding:.4rem .6rem;
+  font-family:'Space Mono',monospace;font-size:.52rem;color:var(--t2);
+  max-width:140px;
+}
+.sgai-attach-preview .file-chip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.attach-rm{
+  position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;
+  background:rgba(0,0,0,.7);border:none;color:#fff;font-size:.55rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  line-height:1;
+}
+
+/* input area */
+.sgai-input-wrap{
+  width:100%;max-width:680px;padding:0 1rem 1.5rem;
+}
+.sgai-input-box{
+  background:var(--s2);border:1px solid var(--b2);border-radius:16px;
+  padding:.85rem 1rem;display:flex;flex-direction:column;gap:.65rem;
+  transition:border-color .15s;
+}
+.sgai-input-box:focus-within{border-color:var(--b2)}
+
+.sgai-ta{
+  width:100%;background:none;border:none;outline:none;
+  color:var(--t1);font-family:'Syne',sans-serif;font-size:.88rem;
+  resize:none;min-height:26px;max-height:160px;line-height:1.5;
+}
+.sgai-ta::placeholder{color:var(--t3)}
+
+.sgai-input-btns{display:flex;align-items:center;gap:.4rem}
+.sgai-plus-btn{
+  position:relative;
+  width:32px;height:32px;border-radius:8px;
+  background:var(--s3);border:1px solid var(--b2);
+  color:var(--t2);font-size:1rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;flex-shrink:0;
+}
+.sgai-plus-btn:hover{background:var(--b1);color:var(--t1)}
+
+/* Dropdown menu */
+.sgai-dropdown{
+  position:absolute;bottom:calc(100% + 8px);left:0;
+  background:var(--s2);border:1px solid var(--b2);
+  border-radius:12px;padding:.4rem;
+  min-width:230px;display:none;flex-direction:column;gap:1px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:10;
+}
+.sgai-dropdown.open{display:flex}
+.dd-item{
+  display:flex;align-items:center;gap:.65rem;
+  padding:.55rem .75rem;border-radius:8px;cursor:pointer;
+  transition:background .12s;border:none;background:none;
+  text-align:left;width:100%;color:var(--t1);
+}
+.dd-item:hover{background:var(--s3)}
+.dd-icon{font-size:.9rem;width:20px;text-align:center;flex-shrink:0;color:var(--t2)}
+.dd-label{font-size:.78rem;font-weight:600;line-height:1.2}
+.dd-sub{font-size:.6rem;color:var(--t3);line-height:1.2;margin-top:1px}
+.dd-divider{height:1px;background:var(--b1);margin:.25rem .5rem}
+
+.sgai-input-right{margin-left:auto;display:flex;align-items:center;gap:.4rem}
+.sgai-model-btn{
+  font-family:'Space Mono',monospace;font-size:.55rem;
+  padding:4px 8px;background:var(--s3);border:1px solid var(--b2);
+  border-radius:6px;color:var(--t2);cursor:pointer;transition:all .15s;
+}
+.sgai-model-btn:hover{color:var(--t1)}
+.sgai-send{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--white);border:none;color:#000;
+  font-size:.9rem;font-weight:900;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s;flex-shrink:0;
+}
+.sgai-send:hover{opacity:.82}
+.sgai-send:disabled{opacity:.3;cursor:not-allowed}
+
+/* Learn step by step panel */
+.learn-panel{
+  width:0;background:var(--s1);border-left:1px solid var(--b1);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:width .3s cubic-bezier(.4,0,.2,1);
+}
+.learn-panel.open{width:320px}
+.learn-ph{
+  padding:.85rem 1rem;border-bottom:1px solid var(--b1);
+  display:flex;align-items:center;gap:.5rem;flex-shrink:0;
+}
+.learn-title{font-weight:700;font-size:.82rem;flex:1}
+.learn-close{background:none;border:none;color:var(--t3);cursor:pointer;font-size:1rem}
+.learn-close:hover{color:var(--t1)}
+.learn-body{flex:1;overflow-y:auto;padding:.85rem}
+.learn-body::-webkit-scrollbar{width:3px}
+.learn-body::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.learn-topic-select{
+  margin-bottom:1rem;
+}
+.learn-topic-select label{
+  font-family:'Space Mono',monospace;font-size:.52rem;
+  text-transform:uppercase;letter-spacing:.1em;color:var(--t3);
+  display:block;margin-bottom:.4rem;
+}
+.learn-select{
+  width:100%;background:var(--s2);border:1px solid var(--b2);
+  border-radius:6px;padding:.4rem .6rem;color:var(--t1);
+  font-family:'Syne',sans-serif;font-size:.72rem;outline:none;cursor:pointer;
+}
+.learn-start{
+  width:100%;background:linear-gradient(135deg,var(--math),#6d53f0);
+  border:none;color:#fff;font-family:'Space Mono',monospace;
+  font-size:.62rem;font-weight:700;padding:8px;border-radius:6px;
+  cursor:pointer;transition:opacity .15s;margin-top:.5rem;
+}
+.learn-start:hover{opacity:.85}
+.learn-steps{display:flex;flex-direction:column;gap:.75rem;margin-top:1rem}
+.learn-step{
+  background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:.75rem;position:relative;
+}
+.learn-step.active{border-color:var(--math);background:rgba(167,139,250,.06)}
+.learn-step.done{opacity:.5;border-color:var(--b1)}
+.step-num{
+  font-family:'Space Mono',monospace;font-size:.5rem;color:var(--t3);
+  margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.1em;
+}
+.step-title{font-size:.75rem;font-weight:700;margin-bottom:.3rem}
+.step-desc{font-size:.68rem;color:var(--t2);line-height:1.5}
+.step-btn{
+  margin-top:.6rem;font-family:'Space Mono',monospace;font-size:.55rem;
+  padding:4px 10px;background:var(--s3);border:1px solid var(--b2);
+  color:var(--t2);border-radius:5px;cursor:pointer;transition:all .15s;
+}
+.step-btn:hover{color:var(--white);border-color:var(--b2)}
+.step-check{
+  position:absolute;top:.75rem;right:.75rem;
+  font-size:.7rem;color:var(--chem);display:none;
+}
+.learn-step.done .step-check{display:block}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:272px 1fr;height:calc(100vh - 56px);overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--s1);border-right:1px solid var(--b1);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-head{padding:.8rem .85rem .6rem;border-bottom:1px solid var(--b1)}
+.sb-row{display:flex;justify-content:space-between;margin-bottom:.5rem}
+.sb-lbl{font-family:'Space Mono',monospace;font-size:0.52rem;text-transform:uppercase;letter-spacing:.14em;color:var(--t3)}
+.sb-count{font-family:'Space Mono',monospace;font-size:0.52rem;color:var(--t2)}
+.search{
+  width:100%;background:var(--s2);border:1px solid var(--b1);
+  border-radius:6px;padding:.4rem .65rem .4rem 1.8rem;
+  color:var(--t1);font-family:'Space Mono',monospace;font-size:0.65rem;
+  outline:none;transition:border-color .15s;
+}
+.search:focus{border-color:var(--b2)}
+.search::placeholder{color:var(--t3)}
+.search-wrap{position:relative}
+.search-icon{position:absolute;left:.6rem;top:50%;transform:translateY(-50%);color:var(--t3);font-size:.7rem;pointer-events:none}
+
+.chapters-list{
+  flex:1;overflow-y:auto;padding:.4rem .5rem .8rem;
+  display:flex;flex-direction:column;gap:3px;
+  transition:background .15s;
+}
+.chapters-list::-webkit-scrollbar{width:3px}
+.chapters-list::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.chapters-list.sb-drop-over{background:rgba(255,255,255,.03);outline:1px dashed var(--b2);outline-offset:-4px}
+.sb-drop-hint{
+  display:none;text-align:center;padding:.45rem;
+  font-family:'Space Mono',monospace;font-size:.55rem;color:var(--t3);
+  border:1px dashed var(--b2);border-radius:5px;margin:.2rem;letter-spacing:.05em;
+}
+.chapters-list.sb-drop-over .sb-drop-hint{display:block}
+
+/* Subject group */
+.subj-group{border:1px solid var(--b1);border-radius:7px;overflow:visible;flex-shrink:0}
+.subj-hdr{
+  display:flex;align-items:center;gap:.5rem;
+  padding:.5rem .65rem;cursor:pointer;
+  background:var(--s2);user-select:none;transition:background .12s;
+}
+.subj-hdr:hover{background:var(--s3)}
+.subj-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.subj-group[data-sub="math"] .subj-dot{background:var(--math);box-shadow:0 0 6px var(--math)}
+.subj-group[data-sub="chem"] .subj-dot{background:var(--chem);box-shadow:0 0 6px var(--chem)}
+.subj-group[data-sub="phys"] .subj-dot{background:var(--phys);box-shadow:0 0 6px var(--phys)}
+.subj-group[data-sub="biz"]  .subj-dot{background:var(--biz); box-shadow:0 0 6px var(--biz)}
+.subj-group[data-sub="eng"]  .subj-dot{background:var(--eng); box-shadow:0 0 6px var(--eng)}
+.subj-name{font-weight:700;font-size:.75rem;flex:1}
+.subj-meta{font-family:'Space Mono',monospace;font-size:.52rem;color:var(--t3);display:flex;align-items:center;gap:5px}
+.subj-done{color:var(--chem)}
+.chevron{font-size:.55rem;color:var(--t3);transition:transform .2s;display:inline-block}
+.subj-group.open .chevron{transform:rotate(90deg)}
+.subj-items{
+  display:none;padding:3px;
+  background:var(--s1);border-top:1px solid var(--b1);
+  flex-direction:column;gap:2px;
+  border-radius:0 0 7px 7px;
+}
+.subj-group.open .subj-items{display:flex}
+
+/* Chapter chip */
+.chip{
+  display:flex;align-items:center;gap:.4rem;
+  padding:.38rem .6rem;border-radius:4px;
+  background:var(--s2);border:1px solid transparent;
+  cursor:grab;user-select:none;transition:all .12s;
+  position:relative;overflow:hidden;
+}
+.chip::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px}
+.subj-group[data-sub="math"] .chip::before{background:var(--math)}
+.subj-group[data-sub="chem"] .chip::before{background:var(--chem)}
+.subj-group[data-sub="phys"] .chip::before{background:var(--phys)}
+.subj-group[data-sub="biz"]  .chip::before{background:var(--biz)}
+.subj-group[data-sub="eng"]  .chip::before{background:var(--eng)}
+.chip:hover{background:var(--s3);border-color:var(--b2);transform:translateX(2px)}
+.chip.dragging{opacity:.3;cursor:grabbing}
+.chip.done{opacity:.3}
+.chip.done .chip-chk{display:block}
+.chip-n{font-family:'Space Mono',monospace;font-size:.47rem;color:var(--t3);min-width:14px;flex-shrink:0}
+.chip-name{font-size:.7rem;font-weight:600;line-height:1.3;flex:1;color:var(--t1)}
+.chip-chk{display:none;font-size:.56rem;color:var(--chem);margin-left:auto;flex-shrink:0}
+
+/* ── MAIN ── */
+.main{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+
+.cal-nav{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.75rem 1.1rem;border-bottom:1px solid var(--b1);
+  background:var(--s1);
+}
+.nav-btn{
+  background:var(--s2);border:1px solid var(--b1);color:var(--t2);
+  width:28px;height:28px;border-radius:5px;cursor:pointer;font-size:.85rem;
+  display:flex;align-items:center;justify-content:center;transition:all .12s;
+}
+.nav-btn:hover{border-color:var(--b2);color:var(--white)}
+.month-lbl{font-size:1rem;font-weight:800;letter-spacing:-.03em;color:var(--white)}
+.month-lbl em{font-style:normal;color:var(--t3);font-weight:400;font-size:.8rem;margin-left:4px}
+.nav-sp{flex:1}
+
+.vis-row{display:flex;align-items:center;gap:5px;margin-right:4px}
+.vdot{
+  width:9px;height:9px;border-radius:50%;cursor:pointer;
+  transition:all .15s;border:2px solid transparent;
+}
+.vdot[data-sub="math"]{background:var(--math);border-color:var(--math)}
+.vdot[data-sub="chem"]{background:var(--chem);border-color:var(--chem)}
+.vdot[data-sub="phys"]{background:var(--phys);border-color:var(--phys)}
+.vdot[data-sub="biz"] {background:var(--biz); border-color:var(--biz)}
+.vdot[data-sub="eng"] {background:var(--eng); border-color:var(--eng)}
+.vdot.off{background:transparent!important;opacity:.3}
+
+.btn-today{
+  font-family:'Space Mono',monospace;font-size:.57rem;padding:4px 9px;
+  background:var(--s2);border:1px solid var(--b1);color:var(--t2);
+  border-radius:5px;cursor:pointer;transition:all .12s;text-transform:uppercase;letter-spacing:.06em;
+}
+.btn-today:hover{border-color:var(--b2);color:var(--white)}
+
+/* ── CALENDAR GRID ── */
+.cal-grid{
+  flex:1;display:grid;grid-template-columns:repeat(7,1fr);
+  overflow-y:auto;
+  border-left:1px solid var(--b1);border-top:1px solid var(--b1);
+}
+.cal-grid::-webkit-scrollbar{width:4px}
+.cal-grid::-webkit-scrollbar-thumb{background:var(--b2)}
+
+.day-hdr{
+  background:var(--s1);border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);
+  padding:.4rem;text-align:center;
+  font-family:'Space Mono',monospace;font-size:.5rem;text-transform:uppercase;
+  letter-spacing:.12em;color:var(--t3);position:sticky;top:0;z-index:10;
+}
+.day-cell{
+  border-right:1px solid var(--b1);border-bottom:1px solid var(--b1);
+  min-height:110px;padding:.3rem;transition:background .12s;
+}
+.day-cell.other{opacity:.22}
+.day-cell.today{background:rgba(255,255,255,.025)}
+.day-cell.drop-over{background:rgba(255,255,255,.05);outline:1px dashed var(--b2);outline-offset:-2px}
+.day-num{
+  font-family:'Space Mono',monospace;font-size:.58rem;font-weight:700;color:var(--t3);
+  display:inline-flex;align-items:center;justify-content:center;
+  width:19px;height:19px;border-radius:4px;margin-bottom:.25rem;
+}
+.day-cell.today .day-num{background:var(--white);color:#000}
+.day-tasks{display:flex;flex-direction:column;gap:2px}
+
+/* Task tags on calendar */
+.ttag{
+  border-radius:3px;padding:2px 5px 2px 7px;
+  font-size:.56rem;font-weight:600;cursor:grab;
+  display:flex;align-items:center;justify-content:space-between;gap:3px;
+  line-height:1.5;position:relative;overflow:hidden;border:1px solid transparent;
+  transition:opacity .12s;
+}
+.ttag::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px}
+.ttag[data-sub="math"]{background:rgba(167,139,250,.09);border-color:rgba(167,139,250,.2);color:var(--math)}
+.ttag[data-sub="math"]::before{background:var(--math)}
+.ttag[data-sub="chem"]{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.18);color:var(--chem)}
+.ttag[data-sub="chem"]::before{background:var(--chem)}
+.ttag[data-sub="phys"]{background:rgba(251,146,60,.09);border-color:rgba(251,146,60,.2);color:var(--phys)}
+.ttag[data-sub="phys"]::before{background:var(--phys)}
+.ttag[data-sub="biz"]{background:rgba(244,114,182,.09);border-color:rgba(244,114,182,.2);color:var(--biz)}
+.ttag[data-sub="biz"]::before{background:var(--biz)}
+.ttag[data-sub="eng"]{background:rgba(250,204,21,.08);border-color:rgba(250,204,21,.17);color:var(--eng)}
+.ttag[data-sub="eng"]::before{background:var(--eng)}
+.ttag:hover{opacity:.7}
+.ttag.dragging{opacity:.25;cursor:grabbing}
+.ttag-rm{opacity:0;font-size:.68rem;cursor:pointer;color:currentColor;line-height:1;flex-shrink:0}
+.ttag:hover .ttag-rm{opacity:.7}
+
+/* ── AI PANEL ── */
+.ai-panel{
+  position:fixed;right:0;top:56px;bottom:0;width:385px;
+  background:var(--s1);border-left:1px solid var(--b1);
+  display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
+  z-index:200;
+}
+.ai-panel.open{transform:translateX(0)}
+.ai-ph{padding:.85rem 1rem;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:.6rem}
+.ai-icon{width:27px;height:27px;background:var(--white);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#000;font-weight:900;flex-shrink:0}
+.ai-ptitle{font-weight:700;font-size:.8rem}
+.ai-psub{font-family:'Space Mono',monospace;font-size:.5rem;color:var(--t3);margin-top:1px}
+.ai-close{margin-left:auto;background:none;border:none;color:var(--t3);cursor:pointer;font-size:1.1rem;line-height:1}
+.ai-close:hover{color:var(--t1)}
+
+.ai-msgs{flex:1;overflow-y:auto;padding:.85rem;display:flex;flex-direction:column;gap:.6rem}
+.ai-msgs::-webkit-scrollbar{width:3px}
+.ai-msgs::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.amsg{border-radius:7px;padding:.65rem .82rem;font-size:.73rem;line-height:1.65;max-width:88%}
+.amsg.user{background:var(--white);color:#111;align-self:flex-end;font-weight:600}
+.amsg.bot{background:var(--s2);border:1px solid var(--b1);align-self:flex-start;color:var(--t1)}
+.amsg.bot strong{color:var(--math)}
+.amsg.thinking{background:var(--s2);border:1px solid var(--b1);align-self:flex-start;color:var(--t3);font-family:'Space Mono',monospace;font-size:.58rem}
+
+.ai-sugg{padding:.5rem .9rem;border-top:1px solid var(--b1);display:flex;flex-wrap:wrap;gap:3px}
+.sugg{font-family:'Space Mono',monospace;font-size:.55rem;padding:3px 7px;background:var(--s2);border:1px solid var(--b1);border-radius:4px;cursor:pointer;color:var(--t3);transition:all .12s}
+.sugg:hover{color:var(--white);border-color:var(--b2)}
+
+.key-row{padding:.58rem .9rem;border-top:1px solid var(--b1);display:flex;align-items:center;gap:7px}
+.key-lbl{font-family:'Space Mono',monospace;font-size:.5rem;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+.key-in{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:.35rem .6rem;color:var(--t1);font-family:'Space Mono',monospace;font-size:.6rem;outline:none}
+.key-in:focus{border-color:var(--b2)}
+.ai-in-row{padding:.58rem .9rem;border-top:1px solid var(--b1);display:flex;gap:5px}
+.ai-ta{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:.42rem .62rem;color:var(--t1);font-family:'Syne',sans-serif;font-size:.73rem;outline:none;resize:none;min-height:34px;max-height:80px}
+.ai-ta:focus{border-color:var(--b2)}
+.send-btn{background:var(--white);border:none;color:#000;border-radius:5px;padding:0 .72rem;cursor:pointer;font-weight:900;font-size:.88rem;transition:opacity .12s}
+.send-btn:hover{opacity:.82}
+.send-btn:disabled{opacity:.25;cursor:not-allowed}
+
+/* drag ghost */
+.ghost{position:fixed;pointer-events:none;z-index:9999;background:var(--white);color:#000;border-radius:4px;padding:4px 10px;font-size:.67rem;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.8);display:none;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Study<span>Grid</span></div>
+  <div class="sep"></div>
+  <div class="hdr-sub">AS Level &middot; 2026</div>
+  <div class="hdr-right">
+    <div class="stat">Scheduled <b id="sc">0</b></div>
+    <div class="stat">Remaining <b id="rc">57</b></div>
+    <button class="btn-countdown" id="openCountdown">⏱ Exams</button>
+    <button class="btn-ai" id="openAI">✦ Ask AI</button>
+    <button class="btn-sgai" id="openSGAI">⚡ StudyGrid AI</button>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-head">
+      <div class="sb-row">
+        <span class="sb-lbl">Chapters</span>
+        <span class="sb-count" id="chipCount">57 topics</span>
+      </div>
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search" type="text" id="searchInput" placeholder="Search topics…">
+      </div>
+    </div>
+    <div class="chapters-list" id="chaptersList"></div>
+  </div>
+
+  <div class="main">
+    <div class="cal-nav">
+      <button class="nav-btn" id="prevBtn">&#8249;</button>
+      <div class="month-lbl" id="monthLbl"></div>
+      <button class="nav-btn" id="nextBtn">&#8250;</button>
+      <div class="nav-sp"></div>
+      <div class="vis-row" id="visRow">
+        <div class="vdot" data-sub="math" title="Mathematics"></div>
+        <div class="vdot" data-sub="chem" title="Chemistry"></div>
+        <div class="vdot" data-sub="phys" title="Physics"></div>
+        <div class="vdot" data-sub="biz"  title="Business"></div>
+        <div class="vdot" data-sub="eng"  title="English"></div>
+      </div>
+      <button class="btn-today" id="todayBtn">Today</button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<div class="ai-panel" id="aiPanel">
+  <div class="ai-ph">
+    <div class="ai-icon">✦</div>
+    <div>
+      <div class="ai-ptitle">Study Assistant</div>
+      <div class="ai-psub">Powered by Google Gemini (Free)</div>
+    </div>
+    <button class="ai-close" id="closeAI">&#215;</button>
+  </div>
+  <div class="ai-msgs" id="aiMsgs">
+    <div class="amsg bot">
+      👋 I'm your AI study assistant powered by <strong>Google Gemini</strong> — ready to go!<br><br>
+      • <strong>Explain any topic</strong> from your syllabus<br>
+      • <strong>Suggest a study order</strong> by difficulty<br>
+      • <strong>Quiz you</strong> on your scheduled chapters<br>
+      • <strong>Plan your revision</strong> before May 2026 exams<br><br>
+      Just type your question below and I'll answer instantly ✦
+    </div>
+  </div>
+  <div class="ai-sugg" id="aiSugg">
+    <span class="sugg" data-m="What's the best order to study AS Math chapters?">Math study order</span>
+    <span class="sugg" data-m="Explain atomic structure simply for Cambridge AS Chemistry">Atomic Structure</span>
+    <span class="sugg" data-m="Give me a 5-question quiz on kinematics for AS Physics">Quiz: Kinematics</span>
+    <span class="sugg" data-m="How should I pace my revision before May 2026 AS exams?">Exam pacing</span>
+    <span class="sugg" data-m="What are the hardest topics in AS Mathematics Paper 1?">Hardest Math topics</span>
+  </div>
+  <div style="display:none">
+    <input type="password" class="key-in" id="apiKey" value="AIzaSyAp9baN6oQ-FxiM7KaF6sK4WYLSvFSTno8">
+  </div>
+  <div class="ai-in-row">
+    <textarea class="ai-ta" id="aiInput" rows="1" placeholder="Ask anything about your studies…"></textarea>
+    <button class="send-btn" id="sendBtn">&#8593;</button>
+  </div>
+</div>
+
+<!-- ── EXAM COUNTDOWN PAGE ── -->
+<div class="countdown-page" id="countdownPage">
+  <div class="cd-header">
+    <div class="cd-logo">Study<span>Grid</span></div>
+    <div class="sep"></div>
+    <div class="cd-title-lbl">Exam Countdown · 2026</div>
+    <button class="cd-close" id="closeCountdown">← Back to Scheduler</button>
+  </div>
+  <div class="cd-body" id="cdBody">
+    <!-- Hero next exam + timer injected by JS -->
+  </div>
+</div>
+
+<!-- ── STUDYGRID AI FULL PAGE ── -->
+<div class="sgai-page" id="sgaiPage">
+  <div class="sgai-wrap">
+
+    <!-- Left sidebar nav -->
+    <div class="sgai-sidenav">
+      <div class="snav-logo" id="sgaiLogoBtn" title="Close StudyGrid AI">
+        SG
+      </div>
+      <button class="snav-btn active" title="Chat">💬</button>
+      <button class="snav-btn" title="History">🕐</button>
+      <div class="snav-divider"></div>
+      <button class="snav-btn" title="Learn Step by Step" id="openLearnBtn">📚</button>
+      <button class="snav-btn" title="Schedule" id="goScheduleBtn">📅</button>
+      <div class="snav-bottom">
+        <button class="snav-btn" title="Settings">⚙️</button>
+        <div class="snav-avatar" title="You">AS</div>
+      </div>
+    </div>
+
+    <!-- Main chat -->
+    <div class="sgai-main">
+      <div class="sgai-topbar">
+        <span class="sgai-topbar-title">StudyGrid AI · Gemini</span>
+        <button class="sgai-close" id="closeSGAI">✕ Close</button>
+      </div>
+
+      <div class="sgai-msgs" id="sgaiMsgs">
+        <!-- Empty state shown on load -->
+        <div class="sgai-empty" id="sgaiEmpty">
+          <div class="sgai-empty-logo">SG</div>
+          <h2>StudyGrid AI</h2>
+          <p>Your AS Level study assistant. Ask me to explain topics, quiz you, build a study plan, or analyse your notes.</p>
+          <div class="sgai-chips">
+            <span class="sgai-chip" data-m="What's the best order to study AS Math P1?">📐 Math study order</span>
+            <span class="sgai-chip" data-m="Explain chemical bonding simply for Cambridge AS Chemistry">⚗️ Chemical Bonding</span>
+            <span class="sgai-chip" data-m="Quiz me on AS Physics kinematics with 5 questions">⚡ Quiz: Kinematics</span>
+            <span class="sgai-chip" data-m="Give me a full revision plan for May 2026 AS exams across all my subjects">📅 Revision plan</span>
+            <span class="sgai-chip" data-m="What are the key essay techniques for AS English Language paper?">✍️ English techniques</span>
+            <span class="sgai-chip" data-m="Explain the difference between AP and GP series for AS Math">∑ AP vs GP Series</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attachment previews -->
+      <div class="sgai-attach-strip" id="sgaiAttachStrip" style="padding:0 1rem;max-width:680px;width:100%"></div>
+
+      <!-- Input -->
+      <div class="sgai-input-wrap">
+        <div class="sgai-input-box">
+          <textarea class="sgai-ta" id="sgaiInput" rows="1" placeholder="Ask anything about your AS Level studies…"></textarea>
+          <div class="sgai-input-btns">
+            <div style="position:relative">
+              <button class="sgai-plus-btn" id="sgaiPlusBtn" title="Add files or images">＋</button>
+              <div class="sgai-dropdown" id="sgaiDropdown">
+                <button class="dd-item" id="ddUploadImg">
+                  <span class="dd-icon">🖼️</span>
+                  <div><div class="dd-label">Upload image</div><div class="dd-sub">JPG, PNG, GIF, WEBP</div></div>
+                </button>
+                <button class="dd-item" id="ddUploadFile">
+                  <span class="dd-icon">📎</span>
+                  <div><div class="dd-label">Upload file</div><div class="dd-sub">PDF, TXT, DOCX</div></div>
+                </button>
+                <div class="dd-divider"></div>
+                <button class="dd-item" id="ddLearnStep">
+                  <span class="dd-icon">📚</span>
+                  <div><div class="dd-label">Learn step by step</div><div class="dd-sub">Guided topic walkthrough</div></div>
+                </button>
+                <button class="dd-item" id="ddQuiz">
+                  <span class="dd-icon">✅</span>
+                  <div><div class="dd-label">Quick quiz</div><div class="dd-sub">Test your knowledge</div></div>
+                </button>
+                <button class="dd-item" id="ddSummary">
+                  <span class="dd-icon">📝</span>
+                  <div><div class="dd-label">Summarise notes</div><div class="dd-sub">Upload & get key points</div></div>
+                </button>
+              </div>
+            </div>
+            <div class="sgai-input-right">
+              <span class="sgai-model-btn">Gemini 2.5</span>
+              <button class="sgai-send" id="sgaiSend">↑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Learn step by step panel -->
+    <div class="learn-panel" id="learnPanel">
+      <div class="learn-ph">
+        <span style="font-size:.9rem">📚</span>
+        <span class="learn-title">Learn Step by Step</span>
+        <button class="learn-close" id="closeLearn">✕</button>
+      </div>
+      <div class="learn-body">
+        <div class="learn-topic-select">
+          <label>Choose a topic</label>
+          <select class="learn-select" id="learnTopicSelect"></select>
+          <button class="learn-start" id="learnStartBtn">Start Learning →</button>
+        </div>
+        <div class="learn-steps" id="learnSteps"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Hidden file inputs -->
+<input type="file" id="fileInputImg" accept="image/*" style="display:none">
+<input type="file" id="fileInputDoc" accept=".pdf,.txt,.docx,.doc" style="display:none">
+
+<div class="ghost" id="ghost"></div>
+
+<script>
+// ── DATA ──
+var SUBJECTS = [
+  {key:'math', label:'Mathematics',     code:'9709', papers:'P1 · S1'},
+  {key:'chem', label:'Chemistry',       code:'9701', papers:'AS 1–22'},
+  {key:'phys', label:'Physics',         code:'9702', papers:'AS 1–11'},
+  {key:'biz',  label:'Business',        code:'9609', papers:'AS 1–2'},
+  {key:'eng',  label:'English Language',code:'9093', papers:'AS'},
+];
+
+var CHAPTERS = [
+  // Math P1
+  {id:'m1', sub:'math', name:'Quadratics',                  n:1},
+  {id:'m2', sub:'math', name:'Functions',                   n:2},
+  {id:'m3', sub:'math', name:'Coordinate Geometry',         n:3},
+  {id:'m4', sub:'math', name:'Circular Measure',            n:4},
+  {id:'m5', sub:'math', name:'Trigonometry',                n:5},
+  {id:'m6', sub:'math', name:'Vectors (2D)',                n:6},
+  {id:'m7', sub:'math', name:'Series (AP, GP, Binomial)',   n:7},
+  {id:'m8', sub:'math', name:'Differentiation',             n:8},
+  {id:'m9', sub:'math', name:'Integration',                 n:9},
+  // Math S1
+  {id:'m10',sub:'math', name:'Representation of Data',      n:10},
+  {id:'m11',sub:'math', name:'Location & Spread',           n:11},
+  {id:'m12',sub:'math', name:'Permutations & Combinations', n:12},
+  {id:'m13',sub:'math', name:'Probability',                 n:13},
+  {id:'m14',sub:'math', name:'Discrete Random Variables',   n:14},
+  {id:'m15',sub:'math', name:'Binomial Distribution',       n:15},
+  {id:'m16',sub:'math', name:'Normal Distribution',         n:16},
+  // Chemistry
+  {id:'c1', sub:'chem', name:'Atomic Structure',                n:1},
+  {id:'c2', sub:'chem', name:'Atoms, Molecules & Stoichiometry',n:2},
+  {id:'c3', sub:'chem', name:'Chemical Bonding',                n:3},
+  {id:'c4', sub:'chem', name:'States of Matter',                n:4},
+  {id:'c5', sub:'chem', name:'Chemical Energetics',             n:5},
+  {id:'c6', sub:'chem', name:'Electrochemistry',                n:6},
+  {id:'c7', sub:'chem', name:'Equilibria',                      n:7},
+  {id:'c8', sub:'chem', name:'Reaction Kinetics',               n:8},
+  {id:'c9', sub:'chem', name:'Chemical Periodicity',            n:9},
+  {id:'c10',sub:'chem', name:'Group 2',                         n:10},
+  {id:'c11',sub:'chem', name:'Group 17',                        n:11},
+  {id:'c12',sub:'chem', name:'Nitrogen & Sulfur',               n:12},
+  {id:'c13',sub:'chem', name:'Intro to Organic Chemistry',      n:13},
+  {id:'c14',sub:'chem', name:'Hydrocarbons',                    n:14},
+  {id:'c15',sub:'chem', name:'Halogen Derivatives',             n:15},
+  {id:'c16',sub:'chem', name:'Hydroxy Compounds',               n:16},
+  {id:'c17',sub:'chem', name:'Carbonyl Compounds',              n:17},
+  {id:'c18',sub:'chem', name:'Carboxylic Acids & Derivatives',  n:18},
+  {id:'c19',sub:'chem', name:'Nitrogen Compounds',              n:19},
+  {id:'c20',sub:'chem', name:'Polymerisation',                  n:20},
+  {id:'c21',sub:'chem', name:'Organic Synthesis',               n:21},
+  {id:'c22',sub:'chem', name:'Analytical Techniques',           n:22},
+  // Physics
+  {id:'p1', sub:'phys', name:'Physical Quantities & Units', n:1},
+  {id:'p2', sub:'phys', name:'Kinematics',                  n:2},
+  {id:'p3', sub:'phys', name:'Dynamics',                    n:3},
+  {id:'p4', sub:'phys', name:'Forces, Density & Pressure',  n:4},
+  {id:'p5', sub:'phys', name:'Work, Energy & Power',        n:5},
+  {id:'p6', sub:'phys', name:'Deformation of Solids',       n:6},
+  {id:'p7', sub:'phys', name:'Waves',                       n:7},
+  {id:'p8', sub:'phys', name:'Superposition',               n:8},
+  {id:'p9', sub:'phys', name:'Electricity',                 n:9},
+  {id:'p10',sub:'phys', name:'D.C. Circuits',               n:10},
+  {id:'p11',sub:'phys', name:'Particle Physics',            n:11},
+  // Business
+  {id:'b1', sub:'biz',  name:'Business & Its Environment',        n:1},
+  {id:'b2', sub:'biz',  name:'Business Structure & Stakeholders', n:2},
+  {id:'b3', sub:'biz',  name:'People in Organisations',           n:3},
+  {id:'b4', sub:'biz',  name:'Motivation & HR Management',        n:4},
+  {id:'b5', sub:'biz',  name:'Org. Structure & Leadership',       n:5},
+  // English
+  {id:'e1', sub:'eng',  name:'Language & Context',               n:1},
+  {id:'e2', sub:'eng',  name:'Text Analysis',                    n:2},
+  {id:'e3', sub:'eng',  name:'Directed Writing',                 n:3},
+  {id:'e4', sub:'eng',  name:'Narrative & Descriptive Writing',  n:4},
+  {id:'e5', sub:'eng',  name:'Commentary Skills',                n:5},
+];
+
+var DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── STATE ──
+var schedule = {};
+var dragged = null;
+var dragFrom = null;
+var hidden = {};
+var openGroups = {math:true, chem:true, phys:true, biz:true, eng:true};
+var searchQ = '';
+var aiHistory = [];
+var now = new Date();
+var curMonth = now.getMonth();
+var curYear = now.getFullYear();
+
+// Load saved schedule
+try { schedule = JSON.parse(localStorage.getItem('sg2') || '{}'); } catch(e) { schedule = {}; }
+function save() { try { localStorage.setItem('sg2', JSON.stringify(schedule)); } catch(e) {} }
+
+// ── HELPERS ──
+function dk(y, m, d) {
+  return y + '-' + pad(m) + '-' + pad(d);
+}
+function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+function getChap(id) {
+  for (var i = 0; i < CHAPTERS.length; i++) {
+    if (CHAPTERS[i].id === id) return CHAPTERS[i];
+  }
+  return null;
+}
+
+function allScheduled() {
+  var all = [];
+  var keys = Object.keys(schedule);
+  for (var i = 0; i < keys.length; i++) {
+    var arr = schedule[keys[i]];
+    for (var j = 0; j < arr.length; j++) all.push(arr[j]);
+  }
+  return all;
+}
+
+function updateStats() {
+  var ids = allScheduled();
+  var unique = {};
+  for (var i = 0; i < ids.length; i++) unique[ids[i]] = 1;
+  var count = Object.keys(unique).length;
+  document.getElementById('sc').textContent = count;
+  document.getElementById('rc').textContent = CHAPTERS.length - count;
+}
+
+// ── SIDEBAR ──
+function renderSidebar() {
+  var list = document.getElementById('chaptersList');
+  var sched = {};
+  var sa = allScheduled();
+  for (var i = 0; i < sa.length; i++) sched[sa[i]] = 1;
+  var q = searchQ.toLowerCase();
+  var total = 0;
+  list.innerHTML = '';
+  // Re-insert the persistent drop hint (wiped by innerHTML='')
+  var hint = document.createElement('div');
+  hint.className = 'sb-drop-hint';
+  hint.id = 'sbDropHint';
+  hint.textContent = '\u21a9 Drop here to unschedule';
+  list.appendChild(hint);
+
+  for (var si = 0; si < SUBJECTS.length; si++) {
+    var sub = SUBJECTS[si];
+    var chips = [];
+    for (var ci = 0; ci < CHAPTERS.length; ci++) {
+      var ch = CHAPTERS[ci];
+      if (ch.sub !== sub.key) continue;
+      if (q && ch.name.toLowerCase().indexOf(q) === -1) continue;
+      chips.push(ch);
+    }
+    if (!chips.length) continue;
+    total += chips.length;
+
+    var doneCount = 0;
+    for (var i = 0; i < chips.length; i++) { if (sched[chips[i].id]) doneCount++; }
+    var isOpen = openGroups[sub.key] || !!q;
+
+    var g = document.createElement('div');
+    g.className = 'subj-group' + (isOpen ? ' open' : '');
+    g.dataset.sub = sub.key;
+
+    var metaHtml = '';
+    if (doneCount > 0) metaHtml += '<span class="subj-done">' + doneCount + '&#10003;</span>';
+    metaHtml += '<span>' + chips.length + '</span>';
+    metaHtml += '<span class="chevron">&#8250;</span>';
+
+    g.innerHTML =
+      '<div class="subj-hdr">' +
+        '<div class="subj-dot"></div>' +
+        '<div class="subj-name">' + sub.label + '</div>' +
+        '<div class="subj-meta">' + metaHtml + '</div>' +
+      '</div>' +
+      '<div class="subj-items"></div>';
+
+    (function(group, key) {
+      group.querySelector('.subj-hdr').addEventListener('click', function() {
+        openGroups[key] = !openGroups[key];
+        group.classList.toggle('open');
+      });
+    })(g, sub.key);
+
+    var itemsEl = g.querySelector('.subj-items');
+    for (var ci = 0; ci < chips.length; ci++) {
+      (function(ch) {
+        var div = document.createElement('div');
+        div.className = 'chip' + (sched[ch.id] ? ' done' : '');
+        div.dataset.id = ch.id;
+        div.draggable = true;
+        div.innerHTML =
+          '<span class="chip-n">' + ch.n + '</span>' +
+          '<span class="chip-name">' + ch.name + '</span>' +
+          '<span class="chip-chk">&#10003;</span>';
+
+        div.addEventListener('dragstart', function(e) {
+          dragged = ch.id;
+          dragFrom = null;
+          div.classList.add('dragging');
+          var ghost = document.getElementById('ghost');
+          ghost.textContent = ch.name;
+          ghost.style.display = 'block';
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        div.addEventListener('dragend', function() {
+          div.classList.remove('dragging');
+          document.getElementById('ghost').style.display = 'none';
+        });
+        itemsEl.appendChild(div);
+      })(chips[ci]);
+    }
+
+    list.appendChild(g);
+  }
+
+  document.getElementById('chipCount').textContent = total + ' topics';
+  updateStats();
+}
+
+// ── CALENDAR ──
+function renderCalendar() {
+  var grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  document.getElementById('monthLbl').innerHTML =
+    MONTHS[curMonth] + '<em>' + curYear + '</em>';
+
+  for (var d = 0; d < 7; d++) {
+    var h = document.createElement('div');
+    h.className = 'day-hdr';
+    h.textContent = DAYS[d];
+    grid.appendChild(h);
+  }
+
+  var firstDay = new Date(curYear, curMonth, 1).getDay();
+  var daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+  var daysInPrev = new Date(curYear, curMonth, 0).getDate();
+  var t = new Date();
+  var todayStr = dk(t.getFullYear(), t.getMonth() + 1, t.getDate());
+
+  // Prev month filler
+  for (var i = firstDay - 1; i >= 0; i--) {
+    var d = daysInPrev - i;
+    var m = curMonth === 0 ? 11 : curMonth - 1;
+    var y = curMonth === 0 ? curYear - 1 : curYear;
+    grid.appendChild(mkCell(d, dk(y, m + 1, d), true, todayStr));
+  }
+
+  // Current month
+  for (var d = 1; d <= daysInMonth; d++) {
+    grid.appendChild(mkCell(d, dk(curYear, curMonth + 1, d), false, todayStr));
+  }
+
+  // Next month filler
+  var total = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  var nextd = 1;
+  while (firstDay + daysInMonth + (nextd - 1) < total) {
+    var m = curMonth === 11 ? 0 : curMonth + 1;
+    var y = curMonth === 11 ? curYear + 1 : curYear;
+    grid.appendChild(mkCell(nextd, dk(y, m + 1, nextd), true, todayStr));
+    nextd++;
+  }
+}
+
+function mkCell(dayNum, dateStr, other, todayStr) {
+  var cell = document.createElement('div');
+  cell.className = 'day-cell' + (other ? ' other' : '') + (dateStr === todayStr ? ' today' : '');
+  cell.dataset.date = dateStr;
+
+  var dn = document.createElement('div');
+  dn.className = 'day-num';
+  dn.textContent = dayNum;
+  cell.appendChild(dn);
+
+  var tasks = document.createElement('div');
+  tasks.className = 'day-tasks';
+
+  var dayChaps = schedule[dateStr] || [];
+  for (var i = 0; i < dayChaps.length; i++) {
+    (function(cid) {
+      var ch = getChap(cid);
+      if (!ch) return;
+      var tag = document.createElement('div');
+      tag.className = 'ttag';
+      tag.dataset.sub = ch.sub;
+      tag.dataset.id = cid;
+      tag.dataset.date = dateStr;
+      tag.draggable = true;
+      tag.style.display = hidden[ch.sub] ? 'none' : '';
+
+      var nameSpan = document.createElement('span');
+      nameSpan.textContent = ch.name;
+
+      var rmSpan = document.createElement('span');
+      rmSpan.className = 'ttag-rm';
+      rmSpan.innerHTML = '&#215;';
+      rmSpan.dataset.date = dateStr;
+      rmSpan.dataset.id = cid;
+
+      tag.appendChild(nameSpan);
+      tag.appendChild(rmSpan);
+
+      tag.addEventListener('dragstart', function(e) {
+        dragged = cid;
+        dragFrom = dateStr;
+        tag.classList.add('dragging');
+        var ghost = document.getElementById('ghost');
+        ghost.textContent = ch.name;
+        ghost.style.display = 'block';
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      tag.addEventListener('dragend', function() {
+        tag.classList.remove('dragging');
+        document.getElementById('ghost').style.display = 'none';
+      });
+      tasks.appendChild(tag);
+    })(dayChaps[i]);
+  }
+
+  cell.appendChild(tasks);
+
+  cell.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    cell.classList.add('drop-over');
+  });
+  cell.addEventListener('dragleave', function() {
+    cell.classList.remove('drop-over');
+  });
+  cell.addEventListener('drop', function(e) {
+    e.preventDefault();
+    cell.classList.remove('drop-over');
+    doDrop(dateStr);
+  });
+
+  return cell;
+}
+
+function doDrop(dateStr) {
+  if (!dragged) return;
+  // Remove from old date if moving
+  if (dragFrom && dragFrom !== dateStr) {
+    var arr = schedule[dragFrom] || [];
+    var newarr = [];
+    for (var i = 0; i < arr.length; i++) { if (arr[i] !== dragged) newarr.push(arr[i]); }
+    if (newarr.length) schedule[dragFrom] = newarr;
+    else delete schedule[dragFrom];
+  }
+  // Add to new date
+  if (!schedule[dateStr]) schedule[dateStr] = [];
+  var exists = false;
+  for (var i = 0; i < schedule[dateStr].length; i++) {
+    if (schedule[dateStr][i] === dragged) { exists = true; break; }
+  }
+  if (!exists) schedule[dateStr].push(dragged);
+  save();
+  renderCalendar();
+  renderSidebar();
+  dragged = null;
+  dragFrom = null;
+}
+
+// ── REMOVE TASK ──
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('ttag-rm')) {
+    var date = e.target.dataset.date;
+    var id = e.target.dataset.id;
+    if (!schedule[date]) return;
+    var newarr = [];
+    for (var i = 0; i < schedule[date].length; i++) {
+      if (schedule[date][i] !== id) newarr.push(schedule[date][i]);
+    }
+    if (newarr.length) schedule[date] = newarr;
+    else delete schedule[date];
+    save();
+    renderCalendar();
+    renderSidebar();
+  }
+});
+
+// ── GHOST ──
+document.addEventListener('mousemove', function(e) {
+  var g = document.getElementById('ghost');
+  g.style.left = (e.clientX + 14) + 'px';
+  g.style.top  = (e.clientY + 14) + 'px';
+});
+
+// ── SIDEBAR DROP ZONE (unschedule) ──
+var sbList = document.getElementById('chaptersList');
+sbList.addEventListener('dragover', function(e) {
+  // Only accept drags coming FROM the calendar (dragFrom is set)
+  if (!dragged || !dragFrom) return;
+  e.preventDefault();
+  sbList.classList.add('sb-drop-over');
+});
+sbList.addEventListener('dragleave', function(e) {
+  // Only remove highlight if we actually left the list
+  if (!sbList.contains(e.relatedTarget)) {
+    sbList.classList.remove('sb-drop-over');
+  }
+});
+sbList.addEventListener('drop', function(e) {
+  e.preventDefault();
+  sbList.classList.remove('sb-drop-over');
+  if (!dragged || !dragFrom) return;
+  // Remove from calendar
+  var arr = schedule[dragFrom] || [];
+  var newarr = [];
+  for (var i = 0; i < arr.length; i++) { if (arr[i] !== dragged) newarr.push(arr[i]); }
+  if (newarr.length) schedule[dragFrom] = newarr;
+  else delete schedule[dragFrom];
+  save();
+  renderCalendar();
+  renderSidebar();
+  dragged = null;
+  dragFrom = null;
+});
+
+// ── NAV ──
+document.getElementById('prevBtn').addEventListener('click', function() {
+  curMonth--;
+  if (curMonth < 0) { curMonth = 11; curYear--; }
+  renderCalendar();
+});
+document.getElementById('nextBtn').addEventListener('click', function() {
+  curMonth++;
+  if (curMonth > 11) { curMonth = 0; curYear++; }
+  renderCalendar();
+});
+document.getElementById('todayBtn').addEventListener('click', function() {
+  var n = new Date();
+  curMonth = n.getMonth();
+  curYear  = n.getFullYear();
+  renderCalendar();
+});
+
+// ── SEARCH ──
+document.getElementById('searchInput').addEventListener('input', function() {
+  searchQ = this.value;
+  renderSidebar();
+});
+
+// ── VISIBILITY DOTS ──
+document.getElementById('visRow').addEventListener('click', function(e) {
+  var dot = e.target.closest('.vdot');
+  if (!dot) return;
+  var sub = dot.dataset.sub;
+  if (hidden[sub]) {
+    delete hidden[sub];
+    dot.classList.remove('off');
+  } else {
+    hidden[sub] = true;
+    dot.classList.add('off');
+  }
+  var tags = document.querySelectorAll('.ttag[data-sub="' + sub + '"]');
+  for (var i = 0; i < tags.length; i++) {
+    tags[i].style.display = hidden[sub] ? 'none' : '';
+  }
+});
+
+// ── AI PANEL ──
+document.getElementById('openAI').addEventListener('click', function() {
+  document.getElementById('aiPanel').classList.add('open');
+});
+document.getElementById('closeAI').addEventListener('click', function() {
+  document.getElementById('aiPanel').classList.remove('open');
+});
+
+document.getElementById('aiSugg').addEventListener('click', function(e) {
+  var chip = e.target.closest('.sugg');
+  if (!chip) return;
+  document.getElementById('aiInput').value = chip.dataset.m;
+  sendMsg();
+});
+
+document.getElementById('sendBtn').addEventListener('click', sendMsg);
+document.getElementById('aiInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+});
+
+function getSchedCtx() {
+  var keys = Object.keys(schedule);
+  if (!keys.length) return '';
+  var lines = [];
+  for (var i = 0; i < keys.length; i++) {
+    var date = keys[i];
+    var ids = schedule[date];
+    var names = [];
+    for (var j = 0; j < ids.length; j++) {
+      var ch = getChap(ids[j]);
+      if (ch) names.push(ch.name + '(' + ch.sub + ')');
+    }
+    lines.push(date + ': ' + names.join(', '));
+  }
+  return '\n\nMy current study schedule:\n' + lines.join('\n');
+}
+
+async function sendMsg() {
+  var inp = document.getElementById('aiInput');
+  var key = document.getElementById('apiKey').value.trim();
+  var txt = inp.value.trim();
+  if (!txt) return;
+  if (!key) {
+    addMsg('Please get a free API key from aistudio.google.com and paste it above.', 'bot');
+    return;
+  }
+
+  addMsg(txt, 'user');
+  inp.value = '';
+
+  var thinking = addMsg('Thinking…', 'thinking');
+  document.getElementById('sendBtn').disabled = true;
+
+  var sysPrompt = 'You are a concise, encouraging study assistant for a Cambridge AS Level student (2026 exams) studying Mathematics (9709), Chemistry (9701), Physics (9702), Business (9609), and English Language (9093). Answer clearly and relate to the Cambridge syllabus.' + getSchedCtx();
+
+  aiHistory.push({ role: 'user', parts: [{ text: txt }] });
+
+  // Build contents array for Gemini (system + history)
+  var contents = [];
+  // Prepend system instruction as first user turn for Gemini 1.5
+  var historyToSend = aiHistory.slice(-12);
+
+  var MODELS = [
+    'gemini-2.5-flash-preview-05-20',
+    'gemini-2.5-flash',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash-002',
+    'gemini-pro'
+  ];
+
+  var lastErr = '';
+  for (var mi = 0; mi < MODELS.length; mi++) {
+    try {
+      var resp = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/' + MODELS[mi] + ':generateContent?key=' + key,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: sysPrompt }] },
+            contents: historyToSend,
+            generationConfig: { maxOutputTokens: 800, temperature: 0.7 }
+          })
+        }
+      );
+
+      if (!resp.ok) {
+        var errData = {};
+        try { errData = await resp.json(); } catch(e2) {}
+        lastErr = (errData.error && errData.error.message) || ('HTTP ' + resp.status);
+        // If model not found / not supported, try next
+        if (resp.status === 404 || resp.status === 400) continue;
+        throw new Error(lastErr);
+      }
+
+      var data = await resp.json();
+      var reply = data.candidates[0].content.parts[0].text;
+      aiHistory.push({ role: 'model', parts: [{ text: reply }] });
+
+      thinking.className = 'amsg bot';
+      thinking.innerHTML = reply
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br>');
+      break; // success — stop trying models
+
+    } catch(err) {
+      lastErr = err.message;
+      if (mi === MODELS.length - 1) {
+        thinking.className = 'amsg bot';
+        thinking.textContent = 'Error: ' + lastErr;
+      }
+    }
+  }
+
+  document.getElementById('sendBtn').disabled = false;
+  var msgs = document.getElementById('aiMsgs');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addMsg(txt, role) {
+  var msgs = document.getElementById('aiMsgs');
+  var div = document.createElement('div');
+  div.className = 'amsg ' + role;
+  if (role === 'user') {
+    div.textContent = txt;
+  } else {
+    div.innerHTML = txt.replace(/\n/g, '<br>');
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+// ── INIT ──
+// ── STUDYGRID AI PAGE ──
+var sgaiHistory = [];
+var sgaiAttachments = [];
+
+// Comprehensive learn steps for every chapter
+var LEARN_STEPS = {
+  // MATH P1
+  'Quadratics':[
+    {title:'Standard form & recognition',desc:'Identify ax²+bx+c. Understand when a>0 (U-shape) vs a<0 (∩-shape) and what the coefficients mean.'},
+    {title:'Factorising quadratics',desc:'Factorise simple cases (x²+5x+6) and harder cases (2x²+7x+3) using inspection and the ac-method.'},
+    {title:'Completing the square',desc:'Rewrite ax²+bx+c in the form a(x+p)²+q. Essential for finding vertex and solving without formula.'},
+    {title:'The quadratic formula',desc:'Derive and apply x = (−b ± √(b²−4ac)) / (2a). Know when to use it vs factorising.'},
+    {title:'The discriminant',desc:'Use Δ = b²−4ac: two real roots (Δ>0), one repeated root (Δ=0), no real roots (Δ<0).'},
+    {title:'Graphs & transformations',desc:'Sketch parabolas, identify roots, vertex, axis of symmetry, and y-intercept from the equation.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 style questions on quadratics including disguised quadratics (e.g. in terms of sinθ).'},
+  ],
+  'Functions':[
+    {title:'Domain & range',desc:'Understand what domain (input values) and range (output values) mean. Identify restrictions.'},
+    {title:'Composite functions',desc:'Form fg(x) by substituting g(x) into f. Practise finding domain of composite functions.'},
+    {title:'Inverse functions',desc:'Find f⁻¹(x) by swapping x and y. Understand that ff⁻¹(x) = x and domain/range swap.'},
+    {title:'One-to-one functions',desc:'Understand the horizontal line test. Restrict domain to make a function invertible.'},
+    {title:'Modulus function',desc:'|f(x)| reflects negative outputs. Solve equations and inequalities involving modulus.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 function questions — composite, inverse, domain/range restrictions.'},
+  ],
+  'Coordinate Geometry':[
+    {title:'Distance & midpoint formulas',desc:'Distance = √((x₂−x₁)²+(y₂−y₁)²). Midpoint = ((x₁+x₂)/2, (y₁+y₂)/2).'},
+    {title:'Gradient & equations of lines',desc:'m = (y₂−y₁)/(x₂−x₁). Forms: y=mx+c, y−y₁=m(x−x₁), ax+by+c=0.'},
+    {title:'Parallel & perpendicular lines',desc:'Parallel lines: equal gradients. Perpendicular lines: m₁ × m₂ = −1.'},
+    {title:'Equation of a circle',desc:'(x−a)²+(y−b)²=r² with centre (a,b) and radius r. Complete the square to find centre/radius.'},
+    {title:'Circle properties',desc:'Tangent is perpendicular to radius. Angle in semicircle = 90°. Perpendicular from centre bisects chord.'},
+    {title:'Intersection of line & circle',desc:'Substitute line into circle equation, form quadratic, use discriminant for tangency conditions.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 coordinate geometry questions involving lines, circles, and tangents.'},
+  ],
+  'Circular Measure':[
+    {title:'Radians vs degrees',desc:'π rad = 180°. Convert: rad = degrees × π/180, degrees = rad × 180/π. Know common angles.'},
+    {title:'Arc length formula',desc:'Arc length s = rθ where θ is in radians. Practice finding s, r, or θ given the others.'},
+    {title:'Area of a sector',desc:'Area = ½r²θ. Combine with triangle area for segment problems: Area of segment = ½r²(θ−sinθ).'},
+    {title:'Area of a segment',desc:'Segment area = sector area − triangle area = ½r²θ − ½r²sinθ = ½r²(θ−sinθ).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 circular measure questions, including perimeter and area of compound shapes.'},
+  ],
+  'Trigonometry':[
+    {title:'SOHCAHTOA & exact values',desc:'sin, cos, tan definitions. Exact values: sin30°=½, cos60°=½, tan45°=1, sin45°=1/√2.'},
+    {title:'Sine & cosine rules',desc:'Sine rule: a/sinA = b/sinB. Cosine rule: a²=b²+c²−2bc·cosA. Know when to use each.'},
+    {title:'Trig identities',desc:'sin²θ+cos²θ=1, tanθ=sinθ/cosθ. Derive secant, cosecant, cotangent identities.'},
+    {title:'Solving trig equations',desc:'Solve sinθ=k, cosθ=k, tanθ=k in given ranges. Use CAST diagram or unit circle.'},
+    {title:'R-form: a·sinx + b·cosx',desc:'Write as R·sin(x+α) or R·cos(x−α) where R=√(a²+b²). Find max/min values.'},
+    {title:'Graphs of trig functions',desc:'Sketch y=sinx, y=cosx, y=tanx and their transformations (amplitude, period, phase shift).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 trig questions including equations, proofs, and R-form problems.'},
+  ],
+  'Vectors (2D)':[
+    {title:'Vector notation & types',desc:'Column vectors, i-j notation, position vectors, displacement vectors. Magnitude |v|=√(x²+y²).'},
+    {title:'Vector arithmetic',desc:'Addition, subtraction, scalar multiplication. Understand parallelogram law of addition.'},
+    {title:'Unit vectors',desc:'Unit vector = v/|v|. Express any vector as a scalar multiple of a unit vector.'},
+    {title:'Position vectors & geometry',desc:'Find midpoints, divide segments in a ratio. Use vectors to prove geometric properties.'},
+    {title:'Dot product',desc:'a·b = |a||b|cosθ = x₁x₂+y₁y₂. Use to find angles between vectors and test perpendicularity.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 vector questions involving position vectors, geometry proofs, and angles.'},
+  ],
+  'Series (AP, GP, Binomial)':[
+    {title:'Arithmetic progressions (AP)',desc:'nth term: aₙ=a+(n−1)d. Sum: Sₙ=n/2·(2a+(n−1)d)=n/2·(a+l). Identify a, d, l.'},
+    {title:'Geometric progressions (GP)',desc:'nth term: aₙ=ar^(n−1). Sum: Sₙ=a(1−rⁿ)/(1−r). Sum to infinity: S∞=a/(1−r), |r|<1.'},
+    {title:'Convergent series',desc:'A GP converges if |r|<1. Find the condition on r for convergence and calculate S∞.'},
+    {title:'Binomial expansion',desc:'(a+b)ⁿ = Σ C(n,r) aⁿ⁻ʳ bʳ. Use nCr = n!/(r!(n−r)!). Find specific terms.'},
+    {title:'Binomial with unknown',desc:'Find coefficients, find unknown given a coefficient, approximate using binomial.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 series questions: AP/GP mixed, binomial expansion, sum to infinity.'},
+  ],
+  'Differentiation':[
+    {title:'First principles',desc:'f\'(x) = lim(h→0) [f(x+h)−f(x)]/h. Differentiate simple polynomials from first principles.'},
+    {title:'Power rule & standard derivatives',desc:'d/dx(xⁿ)=nxⁿ⁻¹. Derivatives of sin, cos, eˣ, ln(x). Sum and constant multiple rules.'},
+    {title:'Chain rule',desc:'d/dx[f(g(x))] = f\'(g(x))·g\'(x). Practise with compound functions like (2x+1)⁵, sin(3x²).'},
+    {title:'Product & quotient rules',desc:'Product: (uv)\'=u\'v+uv\'. Quotient: (u/v)\'=(u\'v−uv\')/v². Know when to apply each.'},
+    {title:'Tangents & normals',desc:'Tangent at x=a has gradient f\'(a). Normal has gradient −1/f\'(a). Find equations.'},
+    {title:'Stationary points',desc:'Set f\'(x)=0. Use second derivative f\'\'(x) to classify: max (f\'\'<0), min (f\'\'>0), inflection.'},
+    {title:'Increasing & decreasing functions',desc:'f\'(x)>0 → increasing. f\'(x)<0 → decreasing. Find intervals and sketch.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 differentiation questions on tangents, stationary points, and rates of change.'},
+  ],
+  'Integration':[
+    {title:'Indefinite integration',desc:'Reverse of differentiation. ∫xⁿ dx = xⁿ⁺¹/(n+1)+C (n≠−1). Always include +C.'},
+    {title:'Definite integration',desc:'∫[a to b] f(x)dx = [F(x)] from a to b = F(b)−F(a). Evaluate without +C.'},
+    {title:'Area under a curve',desc:'Area = ∫[a to b] f(x)dx. If curve is below x-axis, take modulus. Split at x-intercepts.'},
+    {title:'Area between curves',desc:'Area between y=f(x) and y=g(x) = ∫[a to b] |f(x)−g(x)| dx.'},
+    {title:'Integration by substitution',desc:'Let u=g(x), replace dx with du/g\'(x). Simplify and integrate in terms of u.'},
+    {title:'Integration of trig & exponentials',desc:'∫sinx dx=−cosx+C, ∫cosx dx=sinx+C, ∫eˣ dx=eˣ+C, ∫1/x dx=ln|x|+C.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/P1 integration questions on area, substitution, and definite integrals.'},
+  ],
+  // MATH S1
+  'Representation of Data':[
+    {title:'Types of data',desc:'Discrete vs continuous, qualitative vs quantitative. Understanding data collection.'},
+    {title:'Stem-and-leaf diagrams',desc:'Back-to-back stem-and-leaf for comparing two datasets. Identify median and range.'},
+    {title:'Frequency tables & histograms',desc:'Frequency density = frequency/class width. Area represents frequency in histograms.'},
+    {title:'Cumulative frequency',desc:'Plot cumulative frequency curve. Read off median (50%), quartiles (25%, 75%), and percentiles.'},
+    {title:'Box-and-whisker plots',desc:'Show minimum, Q1, median, Q3, maximum. Identify outliers and skewness.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 data representation questions from past papers.'},
+  ],
+  'Location & Spread':[
+    {title:'Mean, median, mode',desc:'Mean = Σfx/Σf for grouped data. Median from ordered data. Modal class for grouped data.'},
+    {title:'Range & interquartile range',desc:'Range = max−min. IQR = Q3−Q1. IQR is resistant to outliers.'},
+    {title:'Variance & standard deviation',desc:'Variance σ²= Σf(x−x̄)²/n = Σfx²/n − x̄². Standard deviation σ = √variance.'},
+    {title:'Coding',desc:'If y=(x−a)/b, then ȳ=(x̄−a)/b and σ_y = σ_x/b. Use to simplify calculations.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 measures of location and spread questions.'},
+  ],
+  'Permutations & Combinations':[
+    {title:'The multiplication principle',desc:'If event A has m ways and event B has n ways, together they have m×n ways.'},
+    {title:'Permutations (order matters)',desc:'ⁿPᵣ = n!/(n−r)!. Arrange n objects in r places where order matters.'},
+    {title:'Combinations (order does not matter)',desc:'ⁿCᵣ = n!/(r!(n−r)!). Choose r from n where order does not matter.'},
+    {title:'Restrictions & special cases',desc:'Handle identical items, circular arrangements, items that must/must not be together.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 permutations and combinations questions including restrictions.'},
+  ],
+  'Probability':[
+    {title:'Basic probability',desc:'P(A) = favourable outcomes / total outcomes. 0 ≤ P(A) ≤ 1. P(A\') = 1−P(A).'},
+    {title:'Addition rule',desc:'P(A∪B) = P(A)+P(B)−P(A∩B). For mutually exclusive events: P(A∪B) = P(A)+P(B).'},
+    {title:'Multiplication rule',desc:'P(A∩B) = P(A)×P(B|A). For independent events: P(A∩B) = P(A)×P(B).'},
+    {title:'Conditional probability',desc:'P(A|B) = P(A∩B)/P(B). Use tree diagrams to organise conditional probabilities.'},
+    {title:'Venn diagrams & probability',desc:'Use Venn diagrams to represent events and calculate intersection, union probabilities.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 probability questions including tree diagrams and conditional probability.'},
+  ],
+  'Discrete Random Variables':[
+    {title:'Probability distributions',desc:'List all values x with their probabilities P(X=x). Check Σp=1.'},
+    {title:'Expected value E(X)',desc:'E(X) = Σx·P(X=x). This is the mean of the distribution.'},
+    {title:'Variance Var(X)',desc:'Var(X) = E(X²)−[E(X)]². Calculate E(X²) = Σx²·P(X=x) first.'},
+    {title:'E(aX+b) and Var(aX+b)',desc:'E(aX+b)=aE(X)+b. Var(aX+b)=a²Var(X). These are key linear transformation results.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 DRV questions on expected value, variance, and distributions.'},
+  ],
+  'Binomial Distribution':[
+    {title:'Binomial conditions',desc:'Fixed n trials, constant probability p, independent trials, two outcomes (success/failure).'},
+    {title:'Binomial formula',desc:'P(X=r) = C(n,r)·pʳ·(1−p)ⁿ⁻ʳ. Know when to use tables vs formula.'},
+    {title:'Mean & variance',desc:'E(X)=np, Var(X)=np(1−p). Use to check your calculations.'},
+    {title:'Cumulative probabilities',desc:'P(X≤r), P(X≥r), P(X<r), P(a≤X≤b). Use tables or sum individual probabilities.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 binomial distribution questions from past papers.'},
+  ],
+  'Normal Distribution':[
+    {title:'Properties of normal distribution',desc:'Bell-shaped, symmetric about mean μ. Notation: X~N(μ,σ²). 68-95-99.7 rule.'},
+    {title:'Standardising: Z-scores',desc:'Z = (X−μ)/σ. Transform to Z~N(0,1) to use standard normal tables.'},
+    {title:'Reading normal distribution tables',desc:'Use Φ(z) tables to find probabilities. P(X<a) = Φ((a−μ)/σ).'},
+    {title:'Inverse normal problems',desc:'Given probability, find x. Use tables in reverse: if Φ(z)=p, find z, then x=μ+zσ.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9709/S1 normal distribution questions including inverse normal and finding μ,σ.'},
+  ],
+  // CHEMISTRY
+  'Atomic Structure':[
+    {title:'Subatomic particles',desc:'Proton (charge +1, mass 1), neutron (charge 0, mass 1), electron (charge −1, mass ~0). Located in nucleus vs shells.'},
+    {title:'Atomic number & mass number',desc:'Atomic number Z = number of protons. Mass number A = protons+neutrons. Neutrons = A−Z.'},
+    {title:'Isotopes',desc:'Same element (same Z), different number of neutrons (different A). Example: ¹²C and ¹⁴C.'},
+    {title:'Relative atomic mass',desc:'Weighted average mass relative to ¹/₁₂ of ¹²C. Use mass spectrometer data to calculate Aᵣ.'},
+    {title:'Electron configuration',desc:'Fill orbitals in order: 1s²2s²2p⁶3s²3p⁶... Exceptions: Cr and Cu. Write full and abbreviated configs.'},
+    {title:'Ionisation energy',desc:'1st IE: energy to remove 1 mole of electrons from gaseous atoms. Trends across period and down group.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS structured questions on atomic structure, IE trends, and electron configurations.'},
+  ],
+  'Atoms, Molecules & Stoichiometry':[
+    {title:'Moles and Avogadro\'s number',desc:'1 mole = 6.02×10²³ particles. Moles = mass/Mᵣ. Learn to convert between mass, moles, and particles.'},
+    {title:'Empirical & molecular formulae',desc:'Empirical formula = simplest ratio. Molecular formula = actual ratio. Find from percentage composition.'},
+    {title:'Molar mass and concentration',desc:'Concentration = moles/volume (in dm³). c=n/V. Understand g/dm³ vs mol/dm³.'},
+    {title:'Balancing equations',desc:'Conserve atoms and charge. Write state symbols: (s),(l),(g),(aq). Balance half-equations for redox.'},
+    {title:'Stoichiometric calculations',desc:'Use mole ratios from balanced equation. Limiting reagent, theoretical yield, % yield.'},
+    {title:'Gas volumes',desc:'At RTP: 1 mole of gas = 24.0 dm³. Use PV=nRT for other conditions.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS stoichiometry calculations including % yield and gas volume problems.'},
+  ],
+  'Chemical Bonding':[
+    {title:'Ionic bonding',desc:'Transfer of electrons between metal and non-metal. Form of lattice structure. Properties: high mp, conducts when molten.'},
+    {title:'Covalent bonding',desc:'Sharing of electron pairs. Single, double, triple bonds. Dative (coordinate) bonds.'},
+    {title:'VSEPR theory',desc:'Electron pairs repel. Predict shapes: linear, bent, trigonal planar, tetrahedral, trigonal bipyramidal, octahedral.'},
+    {title:'Electronegativity & bond polarity',desc:'Electronegativity increases across period, decreases down group. Polar bonds → polar molecules (if asymmetric).'},
+    {title:'Intermolecular forces',desc:'van der Waals (London dispersion), permanent dipole-dipole, hydrogen bonding. Effect on boiling points.'},
+    {title:'Metallic bonding',desc:'Sea of delocalised electrons. Explains conductivity, malleability, high melting points.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS bonding questions on shapes, polarity, and intermolecular forces.'},
+  ],
+  'States of Matter':[
+    {title:'Properties of solids, liquids, gases',desc:'Arrangement, motion, and energy of particles in each state. Kinetic theory.'},
+    {title:'Changes of state',desc:'Melting, boiling, sublimation, condensation. Understand energy changes (latent heat).'},
+    {title:'Ideal gas behaviour',desc:'pV=nRT. Assumptions: point particles, no intermolecular forces, elastic collisions.'},
+    {title:'Deviations from ideal behaviour',desc:'At high pressure and low temperature, real gases deviate. van der Waals equation concept.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS states of matter questions including ideal gas calculations.'},
+  ],
+  'Chemical Energetics':[
+    {title:'Enthalpy and ΔH',desc:'ΔH = H_products − H_reactants. Exothermic (ΔH<0), endothermic (ΔH>0). Standard conditions.'},
+    {title:'Hess\'s Law',desc:'Enthalpy change is independent of route. Use energy cycles to calculate ΔH indirectly.'},
+    {title:'Bond enthalpies',desc:'ΔH = Σ(bonds broken) − Σ(bonds formed). Average bond enthalpies give approximate values.'},
+    {title:'Calorimetry',desc:'q = mcΔT. Calculate enthalpy change from temperature change in solution experiments.'},
+    {title:'Lattice energy & Born-Haber cycles',desc:'Construct Born-Haber cycle for ionic compounds. Identify all enthalpy terms.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS energetics questions on Hess\'s Law, calorimetry, and Born-Haber cycles.'},
+  ],
+  'Electrochemistry':[
+    {title:'Oxidation & reduction',desc:'OIL RIG: Oxidation Is Loss, Reduction Is Gain (of electrons). Assign oxidation states.'},
+    {title:'Oxidation state rules',desc:'O is usually −2, H is usually +1, F is −1, group 1 metals are +1. Determine from compound.'},
+    {title:'Half-equations',desc:'Write separate half-equations for oxidation and reduction. Balance atoms, then charge with e⁻.'},
+    {title:'Redox reactions',desc:'Combine half-equations to give overall ionic equation. Identify oxidising and reducing agents.'},
+    {title:'Electrolysis',desc:'Cathode (negative): reduction. Anode (positive): oxidation. Predict products at each electrode.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS electrochemistry questions on redox equations and electrolysis.'},
+  ],
+  'Equilibria':[
+    {title:'Reversible reactions & equilibrium',desc:'Dynamic equilibrium: forward rate = backward rate. Concentrations constant but not zero.'},
+    {title:'Le Chatelier\'s Principle',desc:'System opposes changes in concentration, pressure, or temperature to restore equilibrium.'},
+    {title:'Effect of temperature on equilibrium',desc:'Increase T: shifts towards endothermic side (absorbs heat). Affects K.'},
+    {title:'Effect of pressure on equilibrium',desc:'Increase P: shifts towards fewer moles of gas. No effect if equal moles of gas each side.'},
+    {title:'Catalysts and equilibrium',desc:'A catalyst increases rate of both forward and back reactions equally. No effect on position of equilibrium.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS equilibrium questions on Le Chatelier predictions and Kc/Kp.'},
+  ],
+  'Reaction Kinetics':[
+    {title:'Rate of reaction',desc:'Rate = change in concentration/time. Measure by change in mass, volume of gas, colour, or pH.'},
+    {title:'Collision theory',desc:'Particles must collide with sufficient energy (≥ activation energy) and correct orientation.'},
+    {title:'Maxwell-Boltzmann distribution',desc:'Distribution of molecular energies. Effect of temperature and catalyst on the distribution curve.'},
+    {title:'Activation energy & catalysts',desc:'Catalyst provides alternative pathway with lower Ea. Increases rate without being consumed.'},
+    {title:'Factors affecting rate',desc:'Temperature, concentration, pressure (gases), surface area (solids), catalysts. Explain each in terms of collisions.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS kinetics questions on rate, Maxwell-Boltzmann, and factors affecting rate.'},
+  ],
+  'Chemical Periodicity':[
+    {title:'Trends across Period 3',desc:'Atomic radius decreases, ionisation energy increases (generally), electronegativity increases.'},
+    {title:'Oxides of Period 3',desc:'Na₂O, MgO (basic) → Al₂O₃ (amphoteric) → SiO₂, P₄O₁₀, SO₃, Cl₂O₇ (acidic). Reactions with water.'},
+    {title:'Chlorides of Period 3',desc:'NaCl, MgCl₂ (ionic) → AlCl₃ (intermediate) → SiCl₄, PCl₅ (covalent). Reactions with water (hydrolysis).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS periodicity questions on trends and reactions of Period 3 elements.'},
+  ],
+  'Group 2':[
+    {title:'Physical properties of Group 2',desc:'Atomic radius increases, ionisation energy decreases, melting points generally decrease down the group.'},
+    {title:'Reactions of Group 2 metals',desc:'React with O₂, H₂O, and dilute acids. Vigour increases down the group.'},
+    {title:'Reactions of Group 2 oxides & hydroxides',desc:'Bases reacting with water (solubility increases down group), acids, and CO₂.'},
+    {title:'Uses of Group 2 compounds',desc:'CaO (quicklime), Ca(OH)₂ (slaked lime) in agriculture, Mg(OH)₂ in antacids.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS Group 2 questions on reactions, trends, and uses.'},
+  ],
+  'Group 17':[
+    {title:'Physical properties of halogens',desc:'Colour, state, and boiling points increase down Group 17. Explained by increasing van der Waals forces.'},
+    {title:'Reactions of halogens',desc:'Cl₂, Br₂, I₂ react with metals, hydrogen, and water. Write ionic and molecular equations.'},
+    {title:'Halogen displacement reactions',desc:'More reactive halogen displaces less reactive halide from solution. Use to establish reactivity order.'},
+    {title:'Disproportionation of chlorine',desc:'Cl₂ + H₂O → HCl + HOCl. Cl₂ + NaOH → NaCl + NaOCl + H₂O. Cl is both oxidised and reduced.'},
+    {title:'Reactions of halide ions',desc:'AgNO₃ test: AgCl (white), AgBr (cream), AgI (yellow) precipitates. Solubility in NH₃.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS Group 17 questions on reactions, displacement, and halide tests.'},
+  ],
+  'Nitrogen & Sulfur':[
+    {title:'Industrial importance of nitrogen',desc:'Haber process: N₂ + 3H₂ ⇌ 2NH₃. Conditions: 450°C, 200 atm, Fe catalyst. Compromise conditions.'},
+    {title:'Nitrogen oxides & acid rain',desc:'NOₓ from combustion engines. Forms HNO₃ in atmosphere. Environmental impacts.'},
+    {title:'Sulfur and its oxides',desc:'Contact process: S + O₂ → SO₂, 2SO₂ + O₂ ⇌ 2SO₃. Conditions: 450°C, V₂O₅ catalyst.'},
+    {title:'Sulfuric acid',desc:'Strong diprotic acid. Dehydrating agent, oxidising agent. Reactions with metals, carbonates, and halides.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS nitrogen and sulfur questions on industrial processes and reactions.'},
+  ],
+  'Intro to Organic Chemistry':[
+    {title:'Functional groups & homologous series',desc:'Alkane, alkene, alcohol, carboxylic acid, halogenoalkane. Naming IUPAC. Properties of homologous series.'},
+    {title:'Structural, displayed & skeletal formulae',desc:'Draw and interpret different representations of organic molecules.'},
+    {title:'Types of isomerism',desc:'Structural isomers: chain, positional, functional group. Stereoisomers: geometric (E/Z) and optical.'},
+    {title:'Organic reaction mechanisms overview',desc:'Introduction to electrophilic addition, nucleophilic substitution, radical substitution mechanisms.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS organic chemistry introduction questions on naming and isomerism.'},
+  ],
+  'Hydrocarbons':[
+    {title:'Alkanes: structure & properties',desc:'Saturated hydrocarbons. Tetrahedral carbon. Physical properties: low mp/bp, non-polar, insoluble in water.'},
+    {title:'Free radical substitution',desc:'Initiation, propagation, termination steps. Halogenation of alkanes with UV light.'},
+    {title:'Alkenes: structure & bonding',desc:'Unsaturated: C=C double bond. σ and π bonds. Trigonal planar geometry at each C.'},
+    {title:'Electrophilic addition to alkenes',desc:'Addition of H₂, HX, X₂, H₂O to alkenes. Markovnikov\'s rule. Mechanism with curly arrows.'},
+    {title:'E/Z isomerism',desc:'Restricted rotation about C=C. Assign E/Z using CIP priority rules (higher priority groups).'},
+    {title:'Combustion of hydrocarbons',desc:'Complete combustion: CO₂ + H₂O. Incomplete: CO or C. Environmental concerns.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS hydrocarbon questions on mechanisms, isomerism, and reactions.'},
+  ],
+  'Halogen Derivatives':[
+    {title:'Naming halogenoalkanes',desc:'Identify primary, secondary, and tertiary halogenoalkanes. IUPAC naming with halo- prefix.'},
+    {title:'Nucleophilic substitution (SN1 & SN2)',desc:'SN2: one-step, inversion of configuration. SN1: two-step, via carbocation, racemic mixture.'},
+    {title:'Elimination reactions',desc:'Heat with KOH in ethanol: produces alkene. Compete with substitution.'},
+    {title:'Reactivity of C−X bond',desc:'C−F strongest, C−I weakest. Bond enthalpy determines reactivity.'},
+    {title:'Reactions of halogenoalkanes',desc:'With NaOH(aq): substitution to alcohol. With NH₃: substitution to amine. With KCN: nitrile.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS halogen derivative questions on mechanisms and reactions.'},
+  ],
+  'Hydroxy Compounds':[
+    {title:'Structure & classification of alcohols',desc:'Primary, secondary, tertiary. −OH functional group. Physical properties: H-bonding explains high bp.'},
+    {title:'Reactions of alcohols',desc:'Combustion, oxidation (primary→aldehyde→acid, secondary→ketone), dehydration to alkene.'},
+    {title:'Esterification',desc:'Alcohol + carboxylic acid ⇌ ester + water. Acid catalyst, reflux, equilibrium reaction.'},
+    {title:'Phenols',desc:'Aromatic −OH. More acidic than alcohols. Reactions with Na, NaOH, FeCl₃ test (purple colour).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS hydroxy compound questions on alcohol reactions and phenol tests.'},
+  ],
+  'Carbonyl Compounds':[
+    {title:'Aldehydes vs ketones',desc:'Both have C=O. Aldehydes: R−CHO (terminal). Ketones: R−CO−R (internal). Naming conventions.'},
+    {title:'Nucleophilic addition',desc:'HCN adds to C=O: mechanism with curly arrows. Forms hydroxynitrile (cyanohydrin).'},
+    {title:'Oxidation tests',desc:'Tollens\' reagent (silver mirror) and Fehling\'s solution distinguish aldehyde from ketone.'},
+    {title:'Reduction of carbonyls',desc:'NaBH₄ reduces aldehydes→primary alcohols, ketones→secondary alcohols.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS carbonyl compound questions on mechanisms and distinguishing tests.'},
+  ],
+  'Carboxylic Acids & Derivatives':[
+    {title:'Properties of carboxylic acids',desc:'Weak acids: only partially dissociate. H-bonding explains high boiling points. Reactions as acids.'},
+    {title:'Reactions of carboxylic acids',desc:'With bases (neutralisation), carbonates (CO₂), alcohols (esterification), PCl₅/SOCl₂ (acyl chlorides).'},
+    {title:'Acyl chlorides',desc:'More reactive than carboxylic acids. React vigorously with water, alcohols, amines. Fumes of HCl.'},
+    {title:'Esters',desc:'Properties, hydrolysis (acid and base/saponification). Biodiesel and pharmaceutical applications.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS carboxylic acid questions on reactions and ester hydrolysis.'},
+  ],
+  'Nitrogen Compounds':[
+    {title:'Amines: primary, secondary, tertiary',desc:'Classification based on number of alkyl groups on N. Basicity due to lone pair on N.'},
+    {title:'Preparation of amines',desc:'Reduction of nitrile (LiAlH₄), nucleophilic substitution of halogenoalkane with NH₃.'},
+    {title:'Reactions of amines',desc:'As bases: react with acids to form salts. As nucleophiles: react with acyl chlorides and esters.'},
+    {title:'Amino acids',desc:'Contains both −NH₂ and −COOH. Amphoteric. Form zwitterions at isoelectric point.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS nitrogen compound questions on amines and amino acid properties.'},
+  ],
+  'Polymerisation':[
+    {title:'Addition polymerisation',desc:'Monomers with C=C join to form long chains. No atoms lost. Example: poly(ethene) from ethene.'},
+    {title:'Condensation polymerisation',desc:'Monomers join with loss of small molecule (H₂O or HCl). Polyesters and polyamides.'},
+    {title:'Polyesters',desc:'Diol + dicarboxylic acid → polyester + water. Example: Terylene (PET). Hydrolysis by acid/base.'},
+    {title:'Polyamides',desc:'Diamine + dicarboxylic acid → polyamide + water. Example: Nylon 6,6. Peptide bonds in proteins.'},
+    {title:'Environmental issues',desc:'Disposal of polymers: landfill, combustion, recycling. Biodegradable vs non-biodegradable.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS polymerisation questions on monomers, mechanisms, and polymers.'},
+  ],
+  'Organic Synthesis':[
+    {title:'Functional group interconversions',desc:'Map out all AS-level conversions: alkane→alkyl halide→alcohol→aldehyde/ketone→carboxylic acid.'},
+    {title:'Planning multi-step syntheses',desc:'Work backwards from target molecule. Identify functional groups and how to introduce them.'},
+    {title:'Reagents and conditions',desc:'Know specific reagents for each reaction type: KMnO₄, NaBH₄, PCl₅, concentrated H₂SO₄, etc.'},
+    {title:'Identification of functional groups',desc:'Use chemical tests: Tollens\', Fehling\'s, bromine water, FeCl₃, AgNO₃, acidified KMnO₄.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS organic synthesis questions requiring multi-step route planning.'},
+  ],
+  'Analytical Techniques':[
+    {title:'Mass spectrometry',desc:'M⁺ peak = molecular mass. Fragmentation pattern. Recognise common fragments (e.g. M−15 = loss of CH₃).'},
+    {title:'Infrared spectroscopy',desc:'Functional group identification. Key absorptions: O−H (2500−3300), C=O (1700−1750), N−H.'},
+    {title:'NMR spectroscopy',desc:'¹H NMR: chemical shift, splitting pattern, integration. Identify environments using δ values.'},
+    {title:'Chromatography',desc:'TLC, GC, HPLC. Rf values. Use in identifying and separating mixtures.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9701 AS analytical techniques questions on spectra interpretation.'},
+  ],
+  // PHYSICS
+  'Physical Quantities & Units':[
+    {title:'SI base units',desc:'7 base units: kg, m, s, A, K, mol, cd. All other units are derived from these.'},
+    {title:'Derived units & homogeneity',desc:'Derive units from equations (e.g. force = kg·m·s⁻²). Check equations are dimensionally homogeneous.'},
+    {title:'Scalars vs vectors',desc:'Scalar: magnitude only (speed, mass, temperature). Vector: magnitude + direction (velocity, force, momentum).'},
+    {title:'Uncertainties & errors',desc:'Random errors, systematic errors. Absolute uncertainty, fractional uncertainty, percentage uncertainty.'},
+    {title:'Significant figures & standard form',desc:'Record to appropriate sig. figs. Use standard form for very large/small numbers.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS units and measurements questions on dimensional analysis and uncertainties.'},
+  ],
+  'Kinematics':[
+    {title:'Displacement, velocity, acceleration',desc:'Vector quantities. Average velocity = Δs/Δt. Acceleration = Δv/Δt. Direction matters.'},
+    {title:'SUVAT equations of motion',desc:'s=ut+½at², v²=u²+2as, v=u+at, s=½(u+v)t. Only valid for constant acceleration.'},
+    {title:'Velocity-time graphs',desc:'Gradient = acceleration. Area under graph = displacement. Interpret curved and straight sections.'},
+    {title:'Projectile motion',desc:'Horizontal: constant velocity (no air resistance). Vertical: free fall under gravity. Resolve independently.'},
+    {title:'Free fall & g',desc:'All objects accelerate at g=9.81 m·s⁻² regardless of mass (in vacuum). Air resistance effects.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS kinematics questions on SUVAT, projectiles, and v-t graph interpretation.'},
+  ],
+  'Dynamics':[
+    {title:'Newton\'s three laws',desc:'1st: inertia. 2nd: F=ma (resultant force). 3rd: equal and opposite action-reaction pairs.'},
+    {title:'Mass vs weight',desc:'Mass (kg) is constant. Weight = mg (N) depends on gravitational field strength g.'},
+    {title:'Linear momentum',desc:'p = mv. Momentum is a vector. Impulse = FΔt = Δp.'},
+    {title:'Conservation of momentum',desc:'Total momentum before = total momentum after (in closed system). Apply to collisions and explosions.'},
+    {title:'Types of collision',desc:'Elastic: KE conserved. Inelastic: KE not conserved. Perfectly inelastic: objects stick together.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS dynamics questions on Newton\'s laws, momentum, and collisions.'},
+  ],
+  'Forces, Density & Pressure':[
+    {title:'Adding forces: resultant',desc:'Use vector addition (triangle/parallelogram law). Resolve forces into perpendicular components.'},
+    {title:'Equilibrium conditions',desc:'For equilibrium: ΣF=0 and Στ=0 (sum of torques = 0). Apply to static systems.'},
+    {title:'Torque & moments',desc:'Torque = F × perpendicular distance. Principle of moments: clockwise = anticlockwise.'},
+    {title:'Density and pressure',desc:'ρ = m/V. Pressure = F/A. Pressure in fluid: p = ρgh. Buoyancy and Archimedes\' principle.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS forces questions on equilibrium, moments, and fluid pressure.'},
+  ],
+  'Work, Energy & Power':[
+    {title:'Work done',desc:'W = Fs·cosθ where θ is angle between force and displacement. Work is a scalar. Units: Joules.'},
+    {title:'Kinetic & potential energy',desc:'KE = ½mv². GPE = mgh. EPE = ½kx² (elastic). Know when each applies.'},
+    {title:'Conservation of energy',desc:'Total energy is conserved. Convert between KE and PE. Account for energy "lost" to heat.'},
+    {title:'Efficiency',desc:'Efficiency = (useful output energy/total input energy) × 100%. Always ≤ 100%.'},
+    {title:'Power',desc:'P = W/t = Fv. Measured in Watts. Average vs instantaneous power.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS work, energy, and power questions including efficiency calculations.'},
+  ],
+  'Deformation of Solids':[
+    {title:'Hooke\'s Law',desc:'F = kx where k is spring constant (N/m). Linear region only. Extension proportional to force.'},
+    {title:'Elastic limit & plastic deformation',desc:'Below elastic limit: material returns to original shape. Above: permanent deformation.'},
+    {title:'Stress, strain & Young\'s modulus',desc:'Stress σ = F/A (Pa). Strain ε = ΔL/L (no units). Young\'s modulus E = σ/ε.'},
+    {title:'Stress-strain graphs',desc:'Interpret: proportional limit, elastic limit, yield point, UTS, fracture point. Area = energy per unit volume.'},
+    {title:'Elastic potential energy',desc:'E = ½Fx = ½kx² = area under F-x graph. Energy stored in deformed material.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS deformation questions on Young\'s modulus and stress-strain graph interpretation.'},
+  ],
+  'Waves':[
+    {title:'Wave properties',desc:'Amplitude, wavelength, frequency, period, wave speed. T=1/f. v=fλ.'},
+    {title:'Transverse vs longitudinal waves',desc:'Transverse: oscillation perpendicular to propagation (light, water). Longitudinal: parallel (sound). Compressions/rarefactions.'},
+    {title:'Wave behaviour',desc:'Reflection, refraction, diffraction, interference. Know what each involves physically.'},
+    {title:'Electromagnetic spectrum',desc:'γ, X-ray, UV, visible, IR, microwave, radio. Order of wavelength and frequency. Properties and uses.'},
+    {title:'Polarisation',desc:'Only transverse waves can be polarised. Polaroid filters. Malus\'s law: I = I₀cos²θ.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS wave questions on v=fλ, wave types, and electromagnetic spectrum.'},
+  ],
+  'Superposition':[
+    {title:'Principle of superposition',desc:'When two waves meet, the resultant displacement = sum of individual displacements.'},
+    {title:'Interference',desc:'Constructive (path diff = nλ, in phase). Destructive (path diff = (n+½)λ, out of phase). Coherence required.'},
+    {title:'Double-slit experiment',desc:'Fringe spacing x = λD/a where D = slit-screen distance, a = slit separation.'},
+    {title:'Diffraction gratings',desc:'d·sinθ = nλ. Find wavelength or grating spacing. Multiple bright fringes.'},
+    {title:'Stationary waves',desc:'Formed by two identical waves travelling in opposite directions. Nodes and antinodes. λ from node spacing.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS superposition questions on interference, double-slit, and stationary waves.'},
+  ],
+  'Electricity':[
+    {title:'Electric charge & current',desc:'Charge Q in Coulombs. Current I = Q/t in Amperes. Conventional current direction (+ to −).'},
+    {title:'Potential difference & EMF',desc:'V = W/Q. EMF = energy per unit charge from source. p.d. = energy per unit charge used.'},
+    {title:'Resistance & Ohm\'s Law',desc:'R = V/I. Ohm\'s law: I proportional to V at constant temperature. Ohmic vs non-ohmic conductors.'},
+    {title:'Resistivity',desc:'R = ρL/A. Resistivity ρ in Ω·m. Depends on material and temperature, not dimensions.'},
+    {title:'I-V characteristics',desc:'Sketch I-V graphs for resistor (linear), diode (non-linear), filament lamp (non-linear, increasing R).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS electricity questions on Ohm\'s law, resistivity, and I-V characteristics.'},
+  ],
+  'D.C. Circuits':[
+    {title:'Series and parallel circuits',desc:'Series: same I, add V, R_total=ΣR. Parallel: same V, add I, 1/R_total=Σ1/R.'},
+    {title:'Kirchhoff\'s laws',desc:'KCL: ΣI in = ΣI out (at junction). KVL: ΣV = 0 (around a loop). Apply to complex circuits.'},
+    {title:'Internal resistance',desc:'EMF ε = I(R+r). Terminal p.d. = ε−Ir. Plot V vs I to find ε (y-intercept) and r (gradient magnitude).'},
+    {title:'Potential dividers',desc:'V_out = V_in × R₂/(R₁+R₂). Use with LDR and thermistor as sensors.'},
+    {title:'Power in circuits',desc:'P = IV = I²R = V²/R. Energy W = Pt = IVt. Calculate power dissipated in components.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS DC circuit questions on Kirchhoff\'s laws, internal resistance, and potential dividers.'},
+  ],
+  'Particle Physics':[
+    {title:'The nuclear atom',desc:'Rutherford\'s gold-foil experiment. Evidence for small, dense, positive nucleus. Most mass in nucleus.'},
+    {title:'Nuclear notation',desc:'ᴬ_Z X notation. Proton number Z, nucleon number A. Isotopes.'},
+    {title:'Radioactive decay types',desc:'Alpha (α): ⁴₂He. Beta-minus (β⁻): electron + antineutrino. Gamma (γ): EM radiation. Write decay equations.'},
+    {title:'Antimatter & particle-antiparticle pairs',desc:'Positron (e⁺), antiproton, antineutrino. Pair production and annihilation: E=mc².'},
+    {title:'Fundamental particles',desc:'Quarks (up, down, strange), leptons (electron, muon, neutrino). Hadrons (baryons, mesons).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9702 AS particle physics questions on decay equations, quarks, and conservation laws.'},
+  ],
+  // BUSINESS
+  'Business & Its Environment':[
+    {title:'What is a business?',desc:'Factors of production (land, labour, capital, enterprise). Business objectives: profit, survival, growth, CSR.'},
+    {title:'Types of business organisations',desc:'Sole trader, partnership, private Ltd (Ltd), public Ltd (PLC), co-operatives, social enterprises.'},
+    {title:'Business objectives & stakeholders',desc:'Shareholders, employees, customers, government, community. Stakeholder conflicts and management.'},
+    {title:'External environment: PEST',desc:'Political, Economic, Social, Technological factors. How each affects business decisions.'},
+    {title:'Business size & growth',desc:'Measures of size: turnover, employees, capital employed. Internal (organic) vs external (merger/takeover) growth.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9609 AS business environment questions with case study analysis.'},
+  ],
+  'Business Structure & Stakeholders':[
+    {title:'Legal structures',desc:'Sole trader vs Ltd vs PLC: liability, capital, control, continuity. Advantages and disadvantages of each.'},
+    {title:'Franchise operations',desc:'Franchisor and franchisee. Benefits and drawbacks for both parties.'},
+    {title:'Stakeholder analysis',desc:'Identify stakeholders, their interests, and influence. Mendelow\'s matrix.'},
+    {title:'Corporate social responsibility',desc:'Definition, examples, costs vs benefits, ethical business behaviour.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9609 AS business structure questions in context of a given business.'},
+  ],
+  'People in Organisations':[
+    {title:'Motivation theories',desc:'Taylor (scientific management), Maslow (hierarchy of needs), Herzberg (two-factor theory). Compare and evaluate.'},
+    {title:'Financial motivation methods',desc:'Wages (time/piece rate), salary, bonuses, commission, profit-sharing, share ownership.'},
+    {title:'Non-financial motivation',desc:'Job enrichment, job enlargement, job rotation, teamwork, empowerment, flexible working.'},
+    {title:'Communication in business',desc:'Formal vs informal, one-way vs two-way, barriers to communication, channels (email, meetings, reports).'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9609 AS people questions on motivation theories with real business application.'},
+  ],
+  'Motivation & HR Management':[
+    {title:'Human resource planning',desc:'Forecasting labour demand and supply. Hard HRM vs soft HRM approaches.'},
+    {title:'Recruitment & selection',desc:'Internal vs external recruitment. Job analysis, job description, person specification. Selection methods.'},
+    {title:'Training & development',desc:'Induction, on-the-job, off-the-job training. Benefits to business and employees. Costs.'},
+    {title:'Performance appraisal',desc:'Formal appraisal systems. 360-degree feedback. Link to pay and promotion.'},
+    {title:'Employee relations',desc:'Trade unions, collective bargaining, industrial action types. Benefits of good employee relations.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9609 AS HR management questions in business context with evaluation.'},
+  ],
+  'Org. Structure & Leadership':[
+    {title:'Organisational structures',desc:'Hierarchy, span of control, chain of command, centralisation vs decentralisation, flat vs tall structures.'},
+    {title:'Delegation & empowerment',desc:'Benefits and risks of delegation. Empowerment and its effect on motivation.'},
+    {title:'Leadership styles',desc:'Autocratic, democratic, laissez-faire, paternalistic. Situational leadership (Tannenbaum-Schmidt continuum).'},
+    {title:'Management vs leadership',desc:'Differences between managing and leading. Blake-Mouton Managerial Grid.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9609 AS organisational questions with case study evaluation of leadership style.'},
+  ],
+  // ENGLISH LANGUAGE
+  'Language & Context':[
+    {title:'Audience, purpose & form',desc:'Identify intended audience (age, background, expertise). Purpose: inform, persuade, entertain, instruct. Form: letter, article, speech, report.'},
+    {title:'Register & tone',desc:'Formal vs informal register. Tone: authoritative, emotive, ironic, humorous. How register shifts for different contexts.'},
+    {title:'Context of production & reception',desc:'When, where, why, and by whom a text is produced. How context shapes meaning and language choices.'},
+    {title:'Mode: spoken vs written',desc:'Differences between speech and writing. Features of each: hesitation, spontaneity vs planning, permanence.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9093 AS Paper 1 unseen text analysis questions focusing on audience, purpose, and form.'},
+  ],
+  'Text Analysis':[
+    {title:'Lexical analysis',desc:'Word choice (diction): formal/informal, abstract/concrete, emotive/neutral language. Semantic fields.'},
+    {title:'Grammatical analysis',desc:'Sentence types (simple, compound, complex). Verb tenses, passive/active voice, noun phrases, modifiers.'},
+    {title:'Structural analysis',desc:'Text organisation, paragraph structure, cohesive devices (connectives, pronouns, lexical chains).'},
+    {title:'Discourse features',desc:'Topic sentences, discourse markers, rhetorical questions, repetition, parallelism, contrast.'},
+    {title:'Phonological features',desc:'Alliteration, assonance, onomatopoeia, rhythm — especially in persuasive and literary texts.'},
+    {title:'Cambridge past paper practice',desc:'Attempt 9093 AS directed analysis tasks identifying and commenting on language features.'},
+  ],
+  'Directed Writing':[
+    {title:'Understanding the task',desc:'Read the question carefully: what form, audience, purpose, and content is required? Identify the text type.'},
+    {title:'Selecting & transforming content',desc:'Choose relevant ideas from the source text. Transform for your new audience and purpose. Do not copy.'},
+    {title:'Writing in appropriate form',desc:'Match layout and conventions: letter (address, salutation), article (headline, subheadings), speech (direct address).'},
+    {title:'Language crafting',desc:'Vary sentence structure, use rhetorical devices, match tone to purpose. Show control of language.'},
+    {title:'Cambridge past paper practice',desc:'Complete 9093 AS directed writing tasks from past papers and compare with mark scheme responses.'},
+  ],
+  'Narrative & Descriptive Writing':[
+    {title:'Descriptive techniques',desc:'Sensory language (sight, sound, smell, touch, taste). Figurative language: simile, metaphor, personification.'},
+    {title:'Narrative structure',desc:'Exposition, rising action, climax, falling action, resolution. Non-linear narrative techniques (flashback, foreshadowing).'},
+    {title:'Creating character & atmosphere',desc:'Show don\'t tell. Dialogue, action, and internal thought to reveal character. Pathetic fallacy for atmosphere.'},
+    {title:'Narrative voice & perspective',desc:'First person (intimate, limited), third person omniscient, third person limited. Effect of each on reader.'},
+    {title:'Cambridge past paper practice',desc:'Write timed 9093 AS creative writing responses and assess against Cambridge descriptors.'},
+  ],
+  'Commentary Skills':[
+    {title:'Explaining your own writing',desc:'Reflect on language choices: why did you use that word, structure, or technique? Link to intended effect.'},
+    {title:'Writing a commentary',desc:'Structure: brief overview, then discuss specific choices (lexis, grammar, structure, tone). Use examples.'},
+    {title:'Evaluating effects',desc:'Explain how your choices create specific effects on your intended reader. Use tentative language (may, suggests).'},
+    {title:'Cambridge past paper practice',desc:'Write commentaries on your own directed writing and narrative responses. Practice with mark schemes.'},
+  ],
+  'default':[
+    {title:'Introduction & key concepts',desc:'Understand the core ideas and definitions for this topic as specified in the Cambridge AS Level syllabus.'},
+    {title:'Worked examples',desc:'Step through typical exam-style worked examples. Understand method as well as answer.'},
+    {title:'Common mistakes & examiner tips',desc:'Learn what examiners penalise and how to avoid errors. Read examiner reports.'},
+    {title:'Formula & fact recap',desc:'Memorise all key formulas, laws, definitions, and key terms for this topic.'},
+    {title:'Cambridge past paper practice',desc:'Apply knowledge to Cambridge AS Level exam-style questions and check mark scheme.'},
+  ],
+};
+
+// Populate learn topic select — all 57 chapters
+function populateLearnSelect() {
+  var sel = document.getElementById('learnTopicSelect');
+  sel.innerHTML = '';
+  for (var si = 0; si < SUBJECTS.length; si++) {
+    var sub = SUBJECTS[si];
+    var grp = document.createElement('optgroup');
+    grp.label = sub.label;
+    var chs = CHAPTERS.filter(function(c){ return c.sub === sub.key; });
+    chs.forEach(function(ch){
+      var opt = document.createElement('option');
+      opt.value = ch.name;
+      opt.textContent = ch.n + '. ' + ch.name;
+      grp.appendChild(opt);
+    });
+    sel.appendChild(grp);
+  }
+}
+
+var currentLearnStep = 0;
+var learnStepsData = [];
+var currentLearnTopic = '';
+
+document.getElementById('learnStartBtn').addEventListener('click', function() {
+  currentLearnTopic = document.getElementById('learnTopicSelect').value;
+  learnStepsData = LEARN_STEPS[currentLearnTopic] || LEARN_STEPS['default'];
+  currentLearnStep = 0;
+  renderLearnSteps();
+});
+
+function renderLearnSteps() {
+  var container = document.getElementById('learnSteps');
+  container.innerHTML = '';
+  learnStepsData.forEach(function(step, i) {
+    var isDone = i < currentLearnStep;
+    var isActive = i === currentLearnStep;
+    var div = document.createElement('div');
+    div.className = 'learn-step' + (isActive ? ' active' : '') + (isDone ? ' done' : '');
+    div.innerHTML =
+      '<div class="step-num">Step ' + (i+1) + ' of ' + learnStepsData.length + '</div>' +
+      '<div class="step-title">' + step.title + '</div>' +
+      '<div class="step-desc">' + step.desc + '</div>' +
+      (isActive ? '<button class="step-btn" data-step="' + i + '">Ask AI to explain this →</button>' : '') +
+      '<span class="step-check">✓ Done</span>';
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll('.step-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var idx = parseInt(btn.dataset.step);
+      var step = learnStepsData[idx];
+      var q = 'Teach me "' + step.title + '" for Cambridge AS Level topic "' + currentLearnTopic + '". Give a clear, structured textbook-style explanation with examples. For maths, use proper notation: fractions as numerator/denominator stacked form described clearly, superscripts for powers.';
+      document.getElementById('sgaiInput').value = q;
+      sendSgaiMsg();
+      currentLearnStep = idx + 1;
+      renderLearnSteps();
+    });
+  });
+}
+
+// ── EXAM COUNTDOWN DATA ──
+var EXAMS = [
+  {date:'2026-04-29', time:'08:30', sub:'math', name:'Mathematics',       paper:'9709/13 – Pure Mathematics 1',       end:'10:20'},
+  {date:'2026-05-04', time:'12:30', sub:'eng',  name:'English Language',   paper:'9093/22 – Writing Paper 22',          end:'14:30'},
+  {date:'2026-05-05', time:'08:30', sub:'biz',  name:'Business',           paper:'9609/13 – Business Concepts 1',       end:'09:45'},
+  {date:'2026-05-11', time:'08:30', sub:'biz',  name:'Business',           paper:'9609/23 – Business Concepts 2',       end:'10:00'},
+  {date:'2026-05-12', time:'08:30', sub:'math', name:'Mathematics',        paper:'9709/53 – Probability & Statistics 1',end:'09:45'},
+  {date:'2026-05-14', time:'12:30', sub:'phys', name:'Physics',            paper:'9702/34 – Advanced Practical Skills', end:'14:30'},
+  {date:'2026-05-18', time:'12:30', sub:'chem', name:'Chemistry',          paper:'9701/22 – AS Structured Questions',   end:'13:45'},
+  {date:'2026-05-20', time:'12:30', sub:'phys', name:'Physics',            paper:'9702/22 – AS Structured Questions',   end:'13:45'},
+  {date:'2026-05-28', time:'12:30', sub:'chem', name:'Chemistry',          paper:'9701/34 – Advanced Practical Skills', end:'14:30'},
+  {date:'2026-06-02', time:'12:30', sub:'chem', name:'Chemistry',          paper:'9701/12 – Multiple Choice',           end:'13:45'},
+  {date:'2026-06-03', time:'12:30', sub:'phys', name:'Physics',            paper:'9702/12 – Multiple Choice',           end:'13:45'},
+  {date:'2026-06-03', time:'12:30', sub:'eng',  name:'English Language',   paper:'9093/12 – Reading Paper',             end:'14:45'},
+];
+
+var SUB_COLORS = {math:'var(--math)',chem:'var(--chem)',phys:'var(--phys)',biz:'var(--biz)',eng:'var(--eng)'};
+
+function getExamDateTime(ex) {
+  return new Date(ex.date + 'T' + ex.time + ':00');
+}
+
+function renderCountdown() {
+  var body = document.getElementById('cdBody');
+  body.innerHTML = '';
+  var now = new Date();
+
+  // Find next upcoming exam
+  var next = null;
+  for (var i = 0; i < EXAMS.length; i++) {
+    if (getExamDateTime(EXAMS[i]) > now) { next = EXAMS[i]; break; }
+  }
+
+  // Hero section
+  var hero = document.createElement('div');
+  hero.className = 'cd-hero';
+  if (next) {
+    var diff = getExamDateTime(next) - now;
+    var days  = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins  = Math.floor((diff % 3600000)  / 60000);
+    var secs  = Math.floor((diff % 60000)    / 1000);
+
+    hero.innerHTML =
+      '<div>' +
+        '<div class="cd-hero-label">Next Exam</div>' +
+        '<div class="cd-hero-name">' + next.name + '</div>' +
+        '<div class="cd-hero-paper">' + next.paper + '</div>' +
+        '<div class="cd-hero-date">' + next.date + ' · ' + next.time + '–' + next.end + '</div>' +
+      '</div>' +
+      '<div class="cd-timer">' +
+        '<div class="cd-unit"><div class="cd-num" id="cd-d">' + String(days).padStart(2,'0') + '</div><div class="cd-unit-lbl">Days</div></div>' +
+        '<div class="cd-unit"><div class="cd-num" id="cd-h">' + String(hours).padStart(2,'0') + '</div><div class="cd-unit-lbl">Hours</div></div>' +
+        '<div class="cd-unit"><div class="cd-num" id="cd-m">' + String(mins).padStart(2,'0') + '</div><div class="cd-unit-lbl">Mins</div></div>' +
+        '<div class="cd-unit"><div class="cd-num" id="cd-s">' + String(secs).padStart(2,'0') + '</div><div class="cd-unit-lbl">Secs</div></div>' +
+      '</div>';
+  } else {
+    hero.innerHTML = '<div style="font-size:1rem;font-weight:700;">🎉 All exams completed! Well done.</div>';
+  }
+  body.appendChild(hero);
+
+  // Exam list
+  var lbl = document.createElement('div');
+  lbl.className = 'cd-section-lbl';
+  lbl.textContent = 'All Exams';
+  body.appendChild(lbl);
+
+  EXAMS.forEach(function(ex) {
+    var exDt = getExamDateTime(ex);
+    var isPast = exDt < now;
+    var isNext = next && ex === next;
+    var daysLeft = Math.ceil((exDt - now) / 86400000);
+
+    var row = document.createElement('div');
+    row.className = 'cd-exam' + (isPast ? ' past' : '') + (isNext ? ' next-up' : '');
+
+    var dot = document.createElement('div');
+    dot.className = 'cd-dot';
+    dot.style.background = SUB_COLORS[ex.sub] || 'var(--t3)';
+    if (isNext) dot.style.boxShadow = '0 0 6px ' + SUB_COLORS[ex.sub];
+
+    var info = document.createElement('div');
+    info.className = 'cd-exam-info';
+    info.innerHTML =
+      '<div class="cd-exam-name">' + ex.name + '</div>' +
+      '<div class="cd-exam-paper">' + ex.paper + '</div>' +
+      '<div class="cd-exam-when">' + ex.date + ' · ' + ex.time + '–' + ex.end + '</div>';
+
+    var right = document.createElement('div');
+    right.className = 'cd-days-box';
+    if (isPast) {
+      right.innerHTML = '<div class="cd-days-num" style="color:var(--t3)">Done</div>';
+    } else {
+      right.innerHTML =
+        '<div class="cd-days-num" style="color:' + SUB_COLORS[ex.sub] + '">' + daysLeft + '</div>' +
+        '<div class="cd-days-lbl">days left</div>';
+    }
+
+    row.appendChild(dot);
+    row.appendChild(info);
+    row.appendChild(right);
+    body.appendChild(row);
+  });
+}
+
+// Tick the countdown every second
+var countdownInterval = null;
+function startCountdownTick() {
+  if (countdownInterval) return;
+  countdownInterval = setInterval(function() {
+    if (!document.getElementById('countdownPage').classList.contains('open')) return;
+    var now = new Date();
+    var next = null;
+    for (var i = 0; i < EXAMS.length; i++) {
+      if (getExamDateTime(EXAMS[i]) > now) { next = EXAMS[i]; break; }
+    }
+    if (!next) return;
+    var diff = getExamDateTime(next) - now;
+    var days  = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins  = Math.floor((diff % 3600000) / 60000);
+    var secs  = Math.floor((diff % 60000) / 1000);
+    var d = document.getElementById('cd-d');
+    var h = document.getElementById('cd-h');
+    var m = document.getElementById('cd-m');
+    var s = document.getElementById('cd-s');
+    if (d) d.textContent = String(days).padStart(2,'0');
+    if (h) h.textContent = String(hours).padStart(2,'0');
+    if (m) m.textContent = String(mins).padStart(2,'0');
+    if (s) s.textContent = String(secs).padStart(2,'0');
+  }, 1000);
+}
+
+document.getElementById('openCountdown').addEventListener('click', function() {
+  renderCountdown();
+  document.getElementById('countdownPage').classList.add('open');
+  startCountdownTick();
+});
+document.getElementById('closeCountdown').addEventListener('click', function() {
+  document.getElementById('countdownPage').classList.remove('open');
+});
+
+// ── CTRL+V PASTE IMAGE ──
+document.addEventListener('paste', function(e) {
+  // Only handle paste if StudyGrid AI page is open
+  if (!document.getElementById('sgaiPage').classList.contains('open')) return;
+  var items = (e.clipboardData || e.originalEvent.clipboardData).items;
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      var blob = items[i].getAsFile();
+      var reader = new FileReader();
+      reader.onload = (function(b) {
+        return function(ev) {
+          var b64 = ev.target.result.split(',')[1];
+          sgaiAttachments.push({
+            type:'image', name:'pasted-image.png',
+            base64:b64, mimeType:'image/png', dataUrl:ev.target.result
+          });
+          renderAttachStrip();
+          // Flash the input to show image received
+          var ta = document.getElementById('sgaiInput');
+          ta.placeholder = '✓ Image pasted — add a message or send now';
+          setTimeout(function(){ ta.placeholder = 'Ask anything about your AS Level studies…'; }, 3000);
+        };
+      })(blob);
+      reader.readAsDataURL(blob);
+      e.preventDefault();
+      break;
+    }
+  }
+});
+
+// Open/close SGAI page
+document.getElementById('openSGAI').addEventListener('click', function() {
+  document.getElementById('sgaiPage').classList.add('open');
+  populateLearnSelect();
+});
+document.getElementById('closeSGAI').addEventListener('click', function() {
+  document.getElementById('sgaiPage').classList.remove('open');
+});
+document.getElementById('sgaiLogoBtn').addEventListener('click', function() {
+  document.getElementById('sgaiPage').classList.remove('open');
+});
+document.getElementById('goScheduleBtn').addEventListener('click', function() {
+  document.getElementById('sgaiPage').classList.remove('open');
+});
+
+// Learn panel
+document.getElementById('openLearnBtn').addEventListener('click', function() {
+  document.getElementById('learnPanel').classList.add('open');
+  populateLearnSelect();
+});
+document.getElementById('ddLearnStep').addEventListener('click', function() {
+  document.getElementById('sgaiDropdown').classList.remove('open');
+  document.getElementById('learnPanel').classList.add('open');
+  populateLearnSelect();
+});
+document.getElementById('closeLearn').addEventListener('click', function() {
+  document.getElementById('learnPanel').classList.remove('open');
+});
+
+// Plus button dropdown
+document.getElementById('sgaiPlusBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  document.getElementById('sgaiDropdown').classList.toggle('open');
+});
+document.addEventListener('click', function(e) {
+  var dd = document.getElementById('sgaiDropdown');
+  if (!dd.contains(e.target) && e.target.id !== 'sgaiPlusBtn') {
+    dd.classList.remove('open');
+  }
+});
+
+// File / image upload
+document.getElementById('ddUploadImg').addEventListener('click', function() {
+  document.getElementById('sgaiDropdown').classList.remove('open');
+  document.getElementById('fileInputImg').click();
+});
+document.getElementById('ddUploadFile').addEventListener('click', function() {
+  document.getElementById('sgaiDropdown').classList.remove('open');
+  document.getElementById('fileInputDoc').click();
+});
+
+document.getElementById('fileInputImg').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var b64 = ev.target.result.split(',')[1];
+    sgaiAttachments.push({type:'image', name:file.name, base64:b64, mimeType:file.type, dataUrl:ev.target.result});
+    renderAttachStrip();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+document.getElementById('fileInputDoc').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var b64 = ev.target.result.split(',')[1];
+    sgaiAttachments.push({type:'file', name:file.name, base64:b64, mimeType:file.type});
+    renderAttachStrip();
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+function renderAttachStrip() {
+  var strip = document.getElementById('sgaiAttachStrip');
+  strip.innerHTML = '';
+  sgaiAttachments.forEach(function(att, i) {
+    var div = document.createElement('div');
+    div.className = 'sgai-attach-preview';
+    if (att.type === 'image') {
+      div.innerHTML = '<img src="' + att.dataUrl + '" alt="' + att.name + '">';
+    } else {
+      div.innerHTML = '<div class="file-chip"><span>📄</span><span>' + att.name + '</span></div>';
+    }
+    var rm = document.createElement('button');
+    rm.className = 'attach-rm';
+    rm.textContent = '×';
+    rm.addEventListener('click', function() {
+      sgaiAttachments.splice(i, 1);
+      renderAttachStrip();
+    });
+    div.appendChild(rm);
+    strip.appendChild(div);
+  });
+}
+
+// Quick actions
+document.getElementById('ddQuiz').addEventListener('click', function() {
+  document.getElementById('sgaiDropdown').classList.remove('open');
+  document.getElementById('sgaiInput').value = 'Give me a 5-question quiz on a topic from my AS Level schedule. Make it exam-style.';
+  sendSgaiMsg();
+});
+document.getElementById('ddSummary').addEventListener('click', function() {
+  document.getElementById('sgaiDropdown').classList.remove('open');
+  document.getElementById('sgaiInput').value = 'Please summarise the key points from the file or image I uploaded.';
+});
+
+// Suggestion chips
+document.getElementById('sgaiMsgs').addEventListener('click', function(e) {
+  var chip = e.target.closest('.sgai-chip');
+  if (!chip) return;
+  document.getElementById('sgaiInput').value = chip.dataset.m;
+  sendSgaiMsg();
+});
+
+// Send
+document.getElementById('sgaiSend').addEventListener('click', sendSgaiMsg);
+document.getElementById('sgaiInput').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendSgaiMsg(); }
+});
+
+// Auto resize textarea
+document.getElementById('sgaiInput').addEventListener('input', function() {
+  this.style.height = 'auto';
+  this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+});
+
+function addSgaiMsg(content, role, isHTML) {
+  var empty = document.getElementById('sgaiEmpty');
+  if (empty) empty.style.display = 'none';
+
+  var msgs = document.getElementById('sgaiMsgs');
+  var row = document.createElement('div');
+  row.className = 'sgai-msg ' + role;
+
+  if (role === 'bot' || role === 'thinking') {
+    var icon = document.createElement('div');
+    icon.className = 'sgai-bot-icon';
+    icon.textContent = 'SG';
+    row.appendChild(icon);
+  }
+
+  var bubble = document.createElement('div');
+  bubble.className = 'sgai-bubble';
+  if (isHTML) {
+    bubble.innerHTML = content;
+  } else {
+    bubble.textContent = content;
+  }
+  row.appendChild(bubble);
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+  return bubble;
+}
+
+async function sendSgaiMsg() {
+  var inp = document.getElementById('sgaiInput');
+  var txt = inp.value.trim();
+  var key = document.getElementById('apiKey').value.trim();
+  if (!txt && sgaiAttachments.length === 0) return;
+
+  // Show user message
+  addSgaiMsg(txt || '(attachment)', 'user', false);
+  inp.value = '';
+  inp.style.height = 'auto';
+
+  var thinking = addSgaiMsg('Thinking…', 'thinking', false);
+  document.getElementById('sgaiSend').disabled = true;
+
+  // Build Gemini content parts
+  var parts = [];
+  sgaiAttachments.forEach(function(att) {
+    parts.push({ inline_data: { mime_type: att.mimeType, data: att.base64 } });
+  });
+  if (txt) parts.push({ text: txt });
+
+  sgaiHistory.push({ role: 'user', parts: parts });
+  sgaiAttachments = [];
+  renderAttachStrip();
+
+  var sysPrompt = 'You are StudyGrid AI, an expert Cambridge AS Level study assistant for a student in Singapore sitting 2026 exams in Mathematics (9709), Chemistry (9701), Physics (9702), Business (9609), and English Language (9093). Be clear, structured, and encouraging. Use markdown formatting with **bold** for key terms. CRITICAL: For all mathematics, use proper textbook notation. Write fractions as (numerator)/(denominator) shown clearly on separate lines or describe as "numerator over denominator". Use superscripts for powers: x² not x^2. Use × for multiplication, ÷ for division (never a forward slash / for division in equations). Use √ for square roots. Use proper mathematical symbols: ≤ ≥ ≠ ≈ ∞ π. Write equations on their own lines. Never write division as a single-line fraction with slash — always describe it in textbook style.';
+
+  var MODELS = [
+    'gemini-2.5-flash-preview-05-20',
+    'gemini-2.5-flash',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash-002',
+    'gemini-pro'
+  ];
+
+  var replied = false;
+  for (var mi = 0; mi < MODELS.length; mi++) {
+    try {
+      var resp = await fetch(
+        'https://generativelanguage.googleapis.com/v1beta/models/' + MODELS[mi] + ':generateContent?key=' + key,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            system_instruction: { parts: [{ text: sysPrompt }] },
+            contents: sgaiHistory.slice(-12),
+            generationConfig: { maxOutputTokens: 1200, temperature: 0.7 }
+          })
+        }
+      );
+      if (!resp.ok) {
+        var ed = {}; try { ed = await resp.json(); } catch(x) {}
+        if (resp.status === 404 || resp.status === 400) continue;
+        throw new Error((ed.error && ed.error.message) || 'HTTP ' + resp.status);
+      }
+      var data = await resp.json();
+      var reply = data.candidates[0].content.parts[0].text;
+      sgaiHistory.push({ role: 'model', parts: [{ text: reply }] });
+
+      var formatted = reply
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g,'<em>$1</em>')
+        .replace(/\n/g,'<br>');
+
+      thinking.className = 'sgai-bubble';
+      thinking.innerHTML = formatted;
+      thinking.closest('.sgai-msg').className = 'sgai-msg bot';
+      replied = true;
+      break;
+    } catch(err) {
+      if (mi === MODELS.length - 1) {
+        thinking.className = 'sgai-bubble';
+        thinking.textContent = 'Error: ' + err.message;
+        thinking.closest('.sgai-msg').className = 'sgai-msg bot';
+      }
+    }
+  }
+
+  document.getElementById('sgaiSend').disabled = false;
+  document.getElementById('sgaiMsgs').scrollTop = 9999;
+}
+
+renderSidebar();
+renderCalendar();
+</script>
+</body>
+</html>
